@@ -5,7 +5,8 @@ import { CategoryDTO } from './dto/category.dto';
 @Injectable()
 export class CategoriesService {
     constructor(private prisma: PrismaService) {}
-    async create(data: CategoryDTO) {
+
+    async create(data: CategoryDTO): Promise<CategoryDTO> {
         const categoryExists = await this.prisma.category.findFirst({
             where: {
                 description: data.description,
@@ -19,22 +20,45 @@ export class CategoriesService {
         const category = await this.prisma.category.create({
             data: data,
         });
+
         return category;
     }
 
-    findAll() {
-        return `This action returns all categories`;
+    async findAll(): Promise<CategoryDTO[]> {
+        const categories = await this.prisma.category.findMany();
+        return categories;
     }
 
     findOne(id: number) {
         return `This action returns a #${id} category`;
     }
 
-    update(id: number) {
-        return `This action updates a #${id} category`;
+    async update(id: number, data: CategoryDTO) {
+        const categoryExists = await this.prisma.category.findFirst({
+            where: {
+                id: id,
+            },
+        });
+
+        if (!categoryExists) {
+            throw new Error('Categoria não encontrada');
+        }
+
+        const update = await this.prisma.category.update({
+            where: {
+                id: id,
+            },
+            data: data,
+        });
+
+        return update;
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} category`;
+    async remove(id: number) {
+        return await this.prisma.category.delete({
+            where: {
+                id: id,
+            },
+        });
     }
 }
