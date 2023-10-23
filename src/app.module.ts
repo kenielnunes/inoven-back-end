@@ -7,10 +7,10 @@ import { ProductController } from './modules/product/product.controller';
 import { ProductModule } from './modules/product/product.module';
 import { ProductService } from './modules/product/product.service';
 import { RequestModule } from './modules/request/request.module';
+import { UserModule } from './modules/user/user.module';
 import { VariantController } from './modules/variant/variant.controller';
 import { VariantModule } from './modules/variant/variant.module';
 import { VariantService } from './modules/variant/variant.service';
-import { UserModule } from './modules/user/user.module';
 
 @Module({
     imports: [
