@@ -3,13 +3,13 @@ import { PrismaService } from 'src/database/PrismaService';
 import { CategoryDTO } from './dto/category.dto';
 
 @Injectable()
-export class CategoriesService {
+export class CategoryService {
     constructor(private prisma: PrismaService) {}
 
     async create(data: CategoryDTO): Promise<CategoryDTO> {
         const categoryExists = await this.prisma.category.findFirst({
             where: {
-                description: data.description,
+                descricao: data.descricao,
             },
         });
 

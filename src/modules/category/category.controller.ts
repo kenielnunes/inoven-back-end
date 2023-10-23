@@ -10,12 +10,12 @@ import {
     Res,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { CategoriesService } from './categories.service';
+import { CategoryService } from './category.service';
 import { CategoryDTO } from './dto/category.dto';
 
 @Controller('categories')
 export class CategoriesController {
-    constructor(private readonly categoriesService: CategoriesService) {}
+    constructor(private readonly categoriesService: CategoryService) {}
 
     @Post()
     async create(@Body() createCategoryDto: CategoryDTO, @Res() res: Response) {

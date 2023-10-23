@@ -5,21 +5,134 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum UserType {
+  ADMIN
+  USER
+}
+
+enum UserSituation {
+  ATIVO
+  INATIVO
+}
+
+enum Status {
+  ACEITO
+  FINALIZADO
+  CANCELADO
+}
+
+enum PaymentMethods {
+  CARTAO_DE_CREDITO
+  BOLETO
+  PIX
+}
+
+enum DeliveryModality {
+  RETIRADA
+  ENTREGA
+}
+
+enum Unit {
+  KG
+  UN
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
 model Category {
-  id  Int @id @default(autoincrement()) 
-  description String
+  id            Int          @id @default(autoincrement())
+  descricao     String
+  Product       Product?
 
-  @@map("categories")
+  @@map("categoria")
+}
+
+model Variation {
+  id            Int          @id @default(autoincrement())
+  descricao     String
+  Product       Product?
+
+  @@map("variacao")
 }
 
 model User {
-  id  Int @id @default(autoincrement())
-  name String
+  id          Int           @id @default(autoincrement())
+  nome        String
+  email       String
+  senha       String
+  tipoUsuario UserType
+  situacao    UserSituation
 
-  @@map("users")
+  @@map("usuario")
+}
+
+model Client {
+  id       Int           @id @default(autoincrement())
+  nome     String
+  telefone String?
+  email    String?
+  Address  Address[] 
+  Pedido   RequestItem[]
+  Request  Request[]
+
+  @@map("cliente")
+}
+
+model Address {
+  id          Int    @id @default(autoincrement())
+  cep         String
+  bairro      String
+  rua         String
+  numero      String
+  complemento String
+  cliente     Client @relation(fields: [clienteId], references: [id])
+  clienteId   Int 
+
+  @@map("endereco")
+}
+
+model Product {
+  id          Int          @id @default(autoincrement())
+  descricao   String
+  categoriaId Int          @unique
+  categoria   Category     @relation(fields: [categoriaId], references: [id])
+  variacaoId  Int          @unique
+  variacao    Variation    @relation(fields: [variacaoId], references: [id])
+  unidade     Unit
+  ItemPedido  RequestItem?
+
+  @@map("produto")
+}
+
+model Request {
+  id                Int              @id @default(autoincrement())
+  cliente           Client           @relation(fields: [clienteId], references: [id])
+  clienteId         Int
+  dataPedido        DateTime         @default(now())
+  dataEntrega       DateTime
+  status            Status
+  formaPagamento    PaymentMethods
+  modalidadeEntrega DeliveryModality
+  itemPedido        RequestItem[]
+
+  @@map("pedido")
+}
+
+model RequestItem {
+  id            Int         @id @default(autoincrement())
+  pedido        Request     @relation(fields: [pedidoId], references: [id])
+  pedidoId      Int
+  produtoId     Int         @unique
+  produto       Product     @relation(fields: [produtoId], references: [id])
+  quantidade    Int
+  observacao    String?
+  imagem        String?
+  valorUnitario Float
+  Client        Client?     @relation(fields: [clientId], references: [id])
+  clientId      Int?
+
+  @@map("item_pedido")
 }
