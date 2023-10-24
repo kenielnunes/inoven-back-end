@@ -1,12 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/database/PrismaService';
 import { AuthDTO } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private prisma: PrismaService,
+        private jwtService: JwtService,
+    ) {}
 
-    async auth(data: AuthDTO) {
+    async validateUser(data: AuthDTO) {
+        console.log('data: ', data);
         const user = await this.prisma.user.findFirst({
             where: {
                 email: data.email,
@@ -23,6 +28,18 @@ export class AuthService {
             throw new Error('Senha incorreta');
         }
 
-        return auth;
+        return user;
+    }
+
+    async login(data: AuthDTO) {
+        const userExists = await this.validateUser(data);
+
+        const payload = {
+            sub: userExists.id,
+            name: userExists.nome,
+            email: userExists.email,
+        };
+
+        return this.jwtService.sign(payload);
     }
 }

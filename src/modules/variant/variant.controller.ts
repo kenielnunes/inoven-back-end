@@ -8,8 +8,10 @@ import {
     Patch,
     Post,
     Res,
+    UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { JwtAuthGuard } from '../auth/jtw-auth.guard';
 import { VariantDTO } from './dto/vartiant.dto';
 import { VariantService } from './variant.service';
 
@@ -17,6 +19,7 @@ import { VariantService } from './variant.service';
 export class VariantController {
     constructor(private readonly variantService: VariantService) {}
 
+    @UseGuards(JwtAuthGuard)
     @Post()
     async create(@Body() data: VariantDTO, @Res() res: Response) {
         try {

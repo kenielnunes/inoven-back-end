@@ -1,6 +1,5 @@
 import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
 import { Response } from 'express';
-import * as jwt from 'jsonwebtoken';
 import { AuthService } from './auth.service';
 import { AuthDTO } from './dto/auth.dto';
 
@@ -11,18 +10,15 @@ export class AuthController {
     @Post()
     async create(@Body() data: AuthDTO, @Res() res: Response) {
         try {
-            await this.authService.auth(data);
-
-            const token = jwt.sign(
-                { sub: data.email, username: data.email },
-                'secret',
-                { expiresIn: '1h' },
-            );
+            const accessToken = await this.authService.login({
+                email: data.email,
+                senha: data.senha,
+            });
 
             return res.status(HttpStatus.OK).send({
                 statusCode: HttpStatus.OK,
                 message: 'Autenticado com sucesso',
-                accessToken: token,
+                accessToken: accessToken,
             });
         } catch (error) {
             return res.status(HttpStatus.BAD_REQUEST).send({
