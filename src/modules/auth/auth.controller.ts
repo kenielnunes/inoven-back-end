@@ -8,7 +8,7 @@ export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @Post()
-    async create(@Body() data: AuthDTO, @Res() res: Response) {
+    async auth(@Body() data: AuthDTO, @Res() res: Response) {
         try {
             const accessToken = await this.authService.login({
                 email: data.email,
