@@ -7,8 +7,10 @@ import {
     Param,
     Post,
     Res,
+    UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { JwtAuthGuard } from '../auth/jtw-auth.guard';
 import { UserDTO } from './dto/user.dto';
 import { UserService } from './user.service';
 
@@ -16,6 +18,7 @@ import { UserService } from './user.service';
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
+    @UseGuards(JwtAuthGuard)
     @Post()
     async create(@Body() data: UserDTO, @Res() res: Response) {
         try {
