@@ -5,8 +5,10 @@
     "author": "",
     "private": true,
     "license": "UNLICENSED",
+    "engines": {
+        "node": "18"
+    },
     "scripts": {
-        "vercel-build": "npx prisma migrate deploy",
         "build": "nest build",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
         "start": "nest start",
