@@ -17,7 +17,7 @@ export class AuthController {
 
             return res.status(HttpStatus.OK).send({
                 statusCode: HttpStatus.OK,
-                message: 'Autenticado com sucesso!',
+                message: 'Autenticado com sucesso',
                 accessToken: accessToken,
             });
         } catch (error) {
