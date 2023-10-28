@@ -19,7 +19,7 @@ export class AuthService {
         });
 
         if (!user) {
-            throw new Error('Nenhum usuário encontrado nesse email');
+            throw new Error('Nenhum usuário encontrado com esse email');
         }
 
         const auth = user.senha === data.senha;
