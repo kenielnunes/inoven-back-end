@@ -75,9 +75,8 @@ model Client {
   nome     String
   telefone String?
   email    String?
-  Address  Address[] 
-  Pedido   RequestItem[]
-  Request  Request[]
+  endereco  Address?
+  pedidos  Request[]
 
   @@map("cliente")
 }
@@ -90,7 +89,7 @@ model Address {
   numero      String
   complemento String
   cliente     Client @relation(fields: [clienteId], references: [id])
-  clienteId   Int 
+  clienteId   Int @unique
 
   @@map("endereco")
 }
@@ -103,7 +102,7 @@ model Product {
   variacaoId  Int          @unique
   variacao    Variation    @relation(fields: [variacaoId], references: [id])
   unidade     Unit
-  ItemPedido  RequestItem?
+  itemPedido  RequestItem?
 
   @@map("produto")
 }
@@ -132,7 +131,6 @@ model RequestItem {
   observacao    String?
   imagem        String?
   valorUnitario Float
-  Client        Client?     @relation(fields: [clientId], references: [id])
   clientId      Int?
 
   @@map("item_pedido")

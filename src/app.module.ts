@@ -3,6 +3,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CategoriesController } from './modules/category/category.controller';
 import { CategoriesModule } from './modules/category/category.module';
 import { CategoryService } from './modules/category/category.service';
+import { ClientModule } from './modules/client/client.module';
+import { StorageModule } from './modules/google/storage/storage.module';
 import { ProductController } from './modules/product/product.controller';
 import { ProductModule } from './modules/product/product.module';
 import { ProductService } from './modules/product/product.service';
@@ -20,6 +22,8 @@ import { VariantService } from './modules/variant/variant.service';
         RequestModule,
         AuthModule,
         UserModule,
+        ClientModule,
+        StorageModule,
     ],
     controllers: [CategoriesController, ProductController, VariantController],
     providers: [CategoryService, ProductService, VariantService],

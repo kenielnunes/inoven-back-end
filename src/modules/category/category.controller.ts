@@ -8,8 +8,10 @@ import {
     Post,
     Put,
     Res,
+    UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { JwtAuthGuard } from '../auth/jtw-auth.guard';
 import { CategoryService } from './category.service';
 import { CategoryDTO } from './dto/category.dto';
 
@@ -17,6 +19,7 @@ import { CategoryDTO } from './dto/category.dto';
 export class CategoriesController {
     constructor(private readonly categoriesService: CategoryService) {}
 
+    @UseGuards(JwtAuthGuard)
     @Post()
     async create(@Body() createCategoryDto: CategoryDTO, @Res() res: Response) {
         try {
@@ -36,6 +39,7 @@ export class CategoriesController {
         }
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get()
     async findAll(@Res() res: Response) {
         const categories = await this.categoriesService.findAll();

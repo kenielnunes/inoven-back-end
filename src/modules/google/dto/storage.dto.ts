@@ -1,3 +1,3 @@
 export class StorageDTO {
-    id: string;
+    imagem: string;
 }

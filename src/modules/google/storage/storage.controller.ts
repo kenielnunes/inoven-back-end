@@ -1,27 +1,40 @@
-import { Controller, Delete, Get, Param } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpStatus,
+    Param,
+    Post,
+    Res,
+} from '@nestjs/common';
+import { Response } from 'express';
+import { StorageDTO } from '../dto/storage.dto';
 import { StorageService } from './storage.service';
 
-@Controller('variants')
+@Controller('images')
 export class StorageController {
     constructor(private readonly storageService: StorageService) {}
 
-    // @Post()
-    // async create(@Body() data: StorageDTO, @Res() res: Response) {
-    //     try {
-    //         const created = await this.storageService.create(data);
+    @Post()
+    async create(@Body() data: StorageDTO, @Res() res: Response) {
+        console.log(data);
 
-    //         return res.status(HttpStatus.CREATED).send({
-    //             statusCode: HttpStatus.CREATED,
-    //             content: created,
-    //             message: 'Variação criada com sucesso!',
-    //         });
-    //     } catch (error) {
-    //         return res.status(HttpStatus.BAD_REQUEST).send({
-    //             statusCode: HttpStatus.BAD_REQUEST,
-    //             message: error.message,
-    //         });
-    //     }
-    // }
+        try {
+            const created = await this.storageService.upload(data);
+
+            return res.status(HttpStatus.CREATED).send({
+                statusCode: HttpStatus.CREATED,
+                content: created,
+                message: 'Imagem salva com sucesso!',
+            });
+        } catch (error) {
+            return res.status(HttpStatus.BAD_REQUEST).send({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: error.message,
+            });
+        }
+    }
 
     @Get()
     findAll() {
