@@ -14,6 +14,7 @@ import { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jtw-auth.guard';
 import { ClientService } from './client.service';
 import { ClientDTO } from './dto/client.dto';
+import { FindClientsDTO } from './dto/find-clients.dto';
 
 @Controller('clients')
 export class ClientController {
@@ -40,8 +41,8 @@ export class ClientController {
 
     @UseGuards(JwtAuthGuard)
     @Get()
-    async findAll() {
-        return await this.clientService.findAll();
+    async findAll(@Body() data: FindClientsDTO) {
+        return await this.clientService.findAll(data);
     }
 
     @Get(':id')

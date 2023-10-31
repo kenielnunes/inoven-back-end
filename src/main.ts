@@ -11,6 +11,7 @@ async function bootstrap() {
     const HOST = process.env.HOST || '0.0.0.0';
 
     //await app.listen(PORT);
+    app.enableCors();
     await app.listen(PORT);
     console.log(`Running on http://${HOST}:${PORT}`);
 }

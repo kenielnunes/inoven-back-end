@@ -1,17 +1,10 @@
 import { Storage } from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
-import { v2 as cloudinary } from 'cloudinary';
-import { randomUUID } from 'crypto';
 import { PrismaService } from 'src/database/PrismaService';
-
-cloudinary.config({
-    cloud_name: 'dvybeab1e',
-    api_key: '653472961781559',
-    api_secret: 'H-tC-MMeWtyMMr0t3I9igOMds0I',
-});
 
 const storage = new Storage({
     keyFilename: `./src/modules/google/storage/config/upbeat-sunspot-402818-46e6eda78e2d.json`,
+    projectId: 'upbeat-sunspot-402818',
 });
 
 const bucketName = 'inoven';
@@ -25,7 +18,7 @@ export class StorageService {
         bucket.upload(
             file,
             {
-                destination: `products-images/${randomUUID()}.jpeg`,
+                destination: `products-images`,
             },
 
             function (err, file) {
