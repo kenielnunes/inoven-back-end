@@ -21,7 +21,7 @@ export class StorageService {
                 destination: `products-images`,
             },
 
-            function (err, file) {
+            function (err) {
                 if (err) {
                     console.error(
                         `Error uploading image image_to_upload.jpeg: ${err}`,
