@@ -5,7 +5,6 @@ import {
     Get,
     HttpStatus,
     Param,
-    Patch,
     Post,
     Res,
     UseGuards,
@@ -46,17 +45,29 @@ export class ClientController {
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.clientService.findOne(+id);
-    }
+    async findOne(@Param('id') id: string, @Res() res: Response) {
+        const client = await this.clientService.findOne(+id);
 
-    @Patch(':id')
-    update(@Param('id') id: string) {
-        return this.clientService.update(+id);
+        return res.status(HttpStatus.OK).send({
+            statusCode: HttpStatus.OK,
+            content: client,
+        });
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.clientService.remove(+id);
+    async remove(@Param('id') id: string, @Res() res: Response) {
+        try {
+            await this.clientService.remove(+id);
+
+            return res.status(HttpStatus.OK).send({
+                statusCode: HttpStatus.OK,
+                message: 'Cliente removido com sucesso!',
+            });
+        } catch (error) {
+            return res.status(HttpStatus.BAD_REQUEST).send({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: error.message,
+            });
+        }
     }
 }

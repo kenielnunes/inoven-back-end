@@ -1,15 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/PrismaService';
+import { EnumValidate } from 'src/utils/enum-validate';
 import { formatDateToDateTime } from 'src/utils/format-date';
+import { ClientService } from '../client/client.service';
 import { RequestDTO } from './dto/request.dto';
 
 @Injectable()
 export class RequestService {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private prisma: PrismaService,
+        private clientService: ClientService,
+        private enumValidate: EnumValidate,
+    ) {}
 
     async create(data: RequestDTO): Promise<RequestDTO> {
-        console.log(new Date('2017-06-01T08:30').toISOString());
+        await this.clientService.findOne(data.clienteId); // verifica se existe um cliente com o id
 
+        await this.enumValidate.isValidPaymentMethod(data.formaPagamento); // valida metodo de pagamento
+
+        await this.enumValidate.isValidStatus(data.status); // valida o status
+
+        await this.enumValidate.isValidDeliveryModality(data.modalidadeEntrega); // valida modalidade de entrega
+
+        // cria o pedido
         const request = await this.prisma.request.create({
             data: {
                 ...data,
@@ -42,6 +55,7 @@ export class RequestService {
             if (paymentMethod && request.formaPagamento !== paymentMethod) {
                 return false;
             }
+
             return true;
         });
 

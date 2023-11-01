@@ -12,7 +12,23 @@ import { FindClientsDTO } from './dto/find-clients.dto';
 export class ClientService {
     constructor(private prisma: PrismaService) {}
 
-    async create(data: ClientDTO) {
+    private async validate(data: ClientDTO) {
+        if (!data.email) {
+            throw new Error('Informe um email');
+        }
+
+        if (!data.nome) {
+            throw new Error('Informe um nome');
+        }
+
+        if (!data.telefone) {
+            throw new Error('Informe um telefone');
+        }
+
+        if (!data.endereco) {
+            throw new Error('Informe um endereço');
+        }
+
         const existsClient = await this.prisma.client.findFirst({
             where: {
                 email: data.email,
@@ -22,7 +38,12 @@ export class ClientService {
         if (existsClient) {
             throw new Error('Já existe um cliente cadastrado com esse email');
         }
-        const created = await this.prisma.client.create({
+    }
+
+    async create(data: ClientDTO) {
+        await this.validate(data);
+
+        const client = await this.prisma.client.create({
             data: {
                 nome: data.nome,
                 email: data.email,
@@ -37,7 +58,7 @@ export class ClientService {
                 complemento: data.endereco.complemento,
                 numero: data.endereco.numero,
                 rua: data.endereco.rua,
-                clienteId: created.id,
+                clienteId: client.id,
             },
         });
 
@@ -59,15 +80,35 @@ export class ClientService {
         );
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} client`;
+    async findOne(id: number) {
+        const client = await this.prisma.client.findFirst({
+            where: {
+                id: id,
+            },
+        });
+
+        if (!client) {
+            throw new Error('Cliente não encontrado');
+        }
+
+        return client;
     }
 
     update(id: number) {
         return `This action updates a #${id} client`;
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} client`;
+    async remove(id: number) {
+        const existsClient = await this.findOne(id);
+
+        if (!existsClient) {
+            throw new Error('Cliente não encontrado');
+        }
+
+        return await this.prisma.client.delete({
+            where: {
+                id: id,
+            },
+        });
     }
 }

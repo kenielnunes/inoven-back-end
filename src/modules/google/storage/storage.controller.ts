@@ -2,12 +2,15 @@ import {
     Controller,
     Delete,
     Get,
-    InternalServerErrorException,
     Param,
     Post,
+    Req,
+    Res,
     UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Request, Response } from 'express';
+import { format } from 'url';
 import { StorageService, bucket } from './storage.service';
 
 @Controller('images')
@@ -16,34 +19,65 @@ export class StorageController {
     constructor(private readonly storageService: StorageService) {}
 
     @Post()
-    async execute(file: Express.Multer.File): Promise<string> {
-        const fs = await require('fs');
-        const filePath = file.path;
-        const fileName = file.originalname;
-        const url = 'professionals/profile-image/' + fileName;
-
-        const options = {
-            destination: url,
-            preconditionOpts: { ifGenerationMatch: 0 },
-        };
-
+    async execute(
+        // @Body() file: Express.Multer.File,
+        @Res() res: Response,
+        @Req() req: Request,
+    ) {
         try {
-            const test = bucket.upload('./' + filePath, options, () => {
-                fs.unlink('./' + filePath, function (err) {
-                    if (err) {
-                        console.log('err -> ', err);
-                        console.error(err.toString());
-                    } else {
-                        console.warn('./' + filePath + ' deleted');
-                    }
-                });
+            if (!req.file) {
+                return res
+                    .status(400)
+                    .send({ message: 'Please upload a file!' });
+            }
+
+            const blob = bucket.file(req.file.originalname);
+            const blobStream = blob.createWriteStream({
+                resumable: false,
             });
 
-            console.log('test -> ', test);
-            return 'Imagem salva no bucket !';
-        } catch (error) {
-            console.log('error -> ', error);
-            throw new InternalServerErrorException('Erro interno no servidor!');
+            blobStream.on('error', (err) => {
+                res.status(500).send({ message: err.message });
+            });
+
+            const fileName = req.file.originalname;
+            const url = 'productImages/' + fileName;
+
+            blobStream.on('finish', async () => {
+                // create a url to access file
+                const publicURL = format(
+                    `https://storage.googleapis.com/${bucket.name}/productImages/${blob.name}`,
+                );
+
+                try {
+                    await bucket.upload(fileName, {
+                        destination: url,
+                    });
+                } catch {
+                    return res.status(500).send({
+                        message: `Uploaded the file successfully: ${fileName}, but public access is denied!`,
+                        url: publicURL,
+                    });
+                }
+
+                res.status(200).send({
+                    message:
+                        'Uploaded the file successfully: ' +
+                        req.file.originalname,
+                    url: publicURL,
+                });
+            });
+            blobStream.end(req.file.buffer);
+        } catch (err) {
+            if (err.code == 'LIMIT_FILE_SIZE') {
+                return res.status(500).send({
+                    message: 'File size cannot be larger than 25MB!',
+                });
+            }
+
+            res.status(500).send({
+                message: `Could not upload the file: ${req.file.originalname}. ${err}`,
+            });
         }
     }
     // async create(
