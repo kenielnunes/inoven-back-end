@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { log } from 'console';
 import { PrismaService } from 'src/database/PrismaService';
 import { EnumValidate } from 'src/utils/enum-validate';
 import { formatDateToDateTime } from 'src/utils/format-date';
@@ -28,15 +27,15 @@ export class RequestService {
         await this.enumValidate.isValidDeliveryModality(data.modalidadeEntrega); // verifica se a modalidade de entrega é valida
 
         for (const item of data.itensPedido) {
-            const imagem = item.imagem as unknown as Express.Multer.File;
+            // const imagem = item.imagem as unknown as Express.Multer.File;
 
-            log(imagem);
-            const createdImage = await this.storageService.upload(
-                imagem,
-                'productImages',
-            );
+            // log(imagem);
+            // const createdImage = await this.storageService.upload(
+            //     imagem,
+            //     'productImages',
+            // );
 
-            log(createdImage);
+            // log(createdImage);
 
             const existsProduct = await this.productService.findOne(
                 item.produtoId,
