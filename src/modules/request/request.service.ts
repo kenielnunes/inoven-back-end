@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { log } from 'console';
 import { PrismaService } from 'src/database/PrismaService';
 import { EnumValidate } from 'src/utils/enum-validate';
 import { formatDateToDateTime } from 'src/utils/format-date';
 import { ClientService } from '../client/client.service';
+import { StorageService } from '../google/storage/storage.service';
+import { ProductService } from '../product/product.service';
 import { RequestDTO } from './dto/request.dto';
 
 @Injectable()
@@ -11,24 +14,51 @@ export class RequestService {
         private prisma: PrismaService,
         private clientService: ClientService,
         private enumValidate: EnumValidate,
+        private productService: ProductService,
+        private storageService: StorageService,
     ) {}
 
     async create(data: RequestDTO): Promise<RequestDTO> {
-        await this.clientService.findOne(data.clienteId); // verifica se existe um cliente com o id
+        await this.clientService.findOne(data.clienteId); //verifica se o cliente existe
 
-        await this.enumValidate.isValidPaymentMethod(data.formaPagamento); // valida metodo de pagamento
+        await this.enumValidate.isValidPaymentMethod(data.formaPagamento); //verifica se o método de pagamento é válido
 
-        await this.enumValidate.isValidStatus(data.status); // valida o status
+        await this.enumValidate.isValidStatus(data.status); // verifica se o status é valido
 
-        await this.enumValidate.isValidDeliveryModality(data.modalidadeEntrega); // valida modalidade de entrega
+        await this.enumValidate.isValidDeliveryModality(data.modalidadeEntrega); // verifica se a modalidade de entrega é valida
 
-        // cria o pedido
-        const request = await this.prisma.request.create({
-            data: {
-                ...data,
-                dataPedido: formatDateToDateTime(data.dataPedido),
-                dataEntrega: formatDateToDateTime(data.dataEntrega),
+        for (const item of data.itensPedido) {
+            const imagem = item.imagem as unknown as Express.Multer.File;
+
+            log(imagem);
+            const createdImage = await this.storageService.upload(
+                imagem,
+                'productImages',
+            );
+
+            log(createdImage);
+
+            const existsProduct = await this.productService.findOne(
+                item.produtoId,
+            );
+
+            if (!existsProduct) {
+                throw new Error('Produto não encontrado');
+            }
+        }
+
+        const requestCreateData = {
+            ...data,
+            dataPedido: formatDateToDateTime(data.dataPedido),
+            dataEntrega: formatDateToDateTime(data.dataEntrega),
+            itensPedido: {
+                create: data.itensPedido,
             },
+        };
+
+        // Cria o pedido
+        const request = await this.prisma.request.create({
+            data: requestCreateData,
         });
 
         return request;
@@ -36,34 +66,30 @@ export class RequestService {
 
     async findAll() {
         const requests = await this.prisma.request.findMany({
+            //     where: {
+            //         status: {
+            //             equals: status,
+            //         },
+            //         dataEntrega: {
+            //             lte: new Date(dataEntrega),
+            // gte: 2022-01-30,
+            //         },
+            //     },
             include: {
                 cliente: true,
+                itensPedido: true,
             },
         });
 
         return requests;
     }
 
-    async findAllWithFilters(
-        status: string,
-        paymentMethod: string,
-    ): Promise<RequestDTO[]> {
-        const filteredRequests = (await this.findAll()).filter((request) => {
-            if (status && request.status !== status) {
-                return false;
-            }
-            if (paymentMethod && request.formaPagamento !== paymentMethod) {
-                return false;
-            }
-
-            return true;
+    async findOne(id: number) {
+        return this.prisma.request.findFirst({
+            where: {
+                id: id,
+            },
         });
-
-        return filteredRequests;
-    }
-
-    findOne(id: number) {
-        return `This action returns a #${id} request`;
     }
 
     update(id: number) {

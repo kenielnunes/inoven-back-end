@@ -102,7 +102,7 @@ model Product {
   variacaoId  Int          @unique
   variacao    Variation    @relation(fields: [variacaoId], references: [id])
   unidade     Unit
-  itemPedido  RequestItem?
+  itemPedido  RequestItem[]
 
   @@map("produto")
 }
@@ -116,7 +116,7 @@ model Request {
   status            Status
   formaPagamento    PaymentMethods
   modalidadeEntrega DeliveryModality
-  itemPedido        RequestItem[]
+  itensPedido        RequestItem[]
 
   @@map("pedido")
 }
@@ -125,13 +125,12 @@ model RequestItem {
   id            Int         @id @default(autoincrement())
   pedido        Request     @relation(fields: [pedidoId], references: [id])
   pedidoId      Int
-  produtoId     Int         @unique
   produto       Product     @relation(fields: [produtoId], references: [id])
+  produtoId     Int  
   quantidade    Int
   observacao    String?
   imagem        String?
   valorUnitario Float
-  clientId      Int?
 
   @@map("item_pedido")
 }

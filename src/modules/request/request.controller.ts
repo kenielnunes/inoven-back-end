@@ -8,45 +8,50 @@ import {
     Post,
     Query,
     Res,
+    UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import { diskStorage } from 'multer';
 import { RequestDTO } from './dto/request.dto';
 import { RequestService } from './request.service';
 
+@UseInterceptors(
+    FileInterceptor('file', {
+        storage: diskStorage({
+            destination: './src/modules/google/storage/assets/uploads',
+            filename: (req, file, cb) => {
+                console.log(file);
+                cb(null, `${file.originalname}`);
+            },
+        }),
+    }),
+)
 @Controller('requests')
 export class RequestController {
     constructor(private readonly requestService: RequestService) {}
 
     @Post()
-    async create(@Body() createRequestDto: RequestDTO, @Res() res: Response) {
+    async create(@Body() data: RequestDTO, @Res() res: Response) {
         try {
-            const created = await this.requestService.create(createRequestDto);
+            const created = await this.requestService.create(data);
             return res.status(HttpStatus.CREATED).send({
                 statusCode: HttpStatus.CREATED,
                 content: created,
                 message: 'Pedido criado com sucesso!',
             });
         } catch (error) {
-            res.status(HttpStatus.BAD_REQUEST).send({
+            return res.status(HttpStatus.BAD_REQUEST).send({
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: error.message,
             });
         }
-        return;
     }
 
     @Get()
-    async findAll(
-        @Query('status') status: string,
-        @Query('formaPagamento') formaPagamento: string,
-        @Res() res: Response,
-    ) {
+    async findAll(@Query() queryParams: RequestDTO, @Res() res: Response) {
         try {
-            const filteredRequests =
-                await this.requestService.findAllWithFilters(
-                    status,
-                    formaPagamento,
-                );
+            const filteredRequests = await this.requestService.findAll();
             return res.status(HttpStatus.OK).send({
                 statusCode: HttpStatus.OK,
                 content: filteredRequests,

@@ -1,4 +1,5 @@
 import { DeliveryModality, PaymentMethods, Status } from '@prisma/client';
+import { RequestItemDTO } from 'src/modules/request-item/dto/request-item.dto';
 
 export class RequestDTO {
     id?: number;
@@ -8,4 +9,5 @@ export class RequestDTO {
     status: Status;
     formaPagamento: PaymentMethods;
     modalidadeEntrega: DeliveryModality;
+    itensPedido?: Partial<RequestItemDTO[]>;
 }

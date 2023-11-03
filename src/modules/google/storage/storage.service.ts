@@ -1,6 +1,8 @@
 import { Storage } from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
+import { log } from 'console';
 import { PrismaService } from 'src/database/PrismaService';
+import { format } from 'url';
 
 const storage = new Storage({
     keyFilename: `./src/modules/google/storage/config/upbeat-sunspot-402818-46e6eda78e2d.json`,
@@ -14,25 +16,52 @@ export const bucket = storage.bucket(bucketName);
 export class StorageService {
     constructor(private prisma: PrismaService) {}
 
-    async upload(file: any) {
-        bucket.upload(
-            file,
-            {
-                destination: `products-images`,
-            },
+    async upload(file: Express.Multer.File, destinationUrl: string) {
+        if (!file) {
+            throw new Error('Selecione uma imagem');
+        }
 
-            function (err) {
-                if (err) {
-                    console.error(
-                        `Error uploading image image_to_upload.jpeg: ${err}`,
-                    );
-                } else {
-                    console.log(
-                        `Image image_to_upload.jpeg uploaded to ${bucketName}.`,
-                    );
-                }
-            },
+        const blob = bucket.file(file.originalname);
+        log('blob', blob);
+        const blobStream = blob.createWriteStream({
+            resumable: false,
+        });
+        log('streamBlob', blobStream);
+
+        blobStream.on('error', () => {
+            throw new Error('erro no blob');
+        });
+
+        const fileName = file.originalname;
+        const publicURL = format(
+            `https://storage.googleapis.com/${bucket.name}/${destinationUrl}/${blob.name}`,
         );
+
+        blobStream.on('finish', async () => {
+            // create a url to access file
+
+            bucket.upload(
+                `./src/modules/google/storage/assets/uploads/${file.originalname}`,
+                {
+                    destination: `${destinationUrl}/${fileName}`,
+                },
+                function (err) {
+                    if (err) {
+                        console.error(
+                            `Error uploading image ${file.originalname}: ${err}`,
+                        );
+                    } else {
+                        console.log(
+                            `Image ${file.originalname} uploaded to ${bucket.name}.`,
+                        );
+                    }
+                },
+            );
+        });
+
+        blobStream.end(file.buffer);
+
+        return publicURL;
     }
 
     async findAll() {

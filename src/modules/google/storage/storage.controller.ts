@@ -4,82 +4,55 @@ import {
     Get,
     Param,
     Post,
-    Req,
     Res,
+    UploadedFile,
     UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Request, Response } from 'express';
-import { format } from 'url';
-import { StorageService, bucket } from './storage.service';
+import { Response } from 'express';
+import { diskStorage } from 'multer';
+import { StorageService } from './storage.service';
 
 @Controller('images')
-@UseInterceptors(FileInterceptor('file'))
+@UseInterceptors(
+    FileInterceptor('file', {
+        storage: diskStorage({
+            destination: './src/modules/google/storage/assets/uploads',
+            filename: (req, file, cb) => {
+                console.log(file);
+                //Calling the callback passing the random name generated with the original extension name
+                cb(null, `${file.originalname}`);
+            },
+        }),
+    }),
+)
 export class StorageController {
     constructor(private readonly storageService: StorageService) {}
 
     @Post()
     async execute(
         // @Body() file: Express.Multer.File,
+        @UploadedFile() file: Express.Multer.File,
         @Res() res: Response,
-        @Req() req: Request,
     ) {
         try {
-            if (!req.file) {
-                return res
-                    .status(400)
-                    .send({ message: 'Please upload a file!' });
-            }
+            const imagem = await this.storageService.upload(
+                file,
+                'productImages',
+            );
 
-            const blob = bucket.file(req.file.originalname);
-            const blobStream = blob.createWriteStream({
-                resumable: false,
+            res.status(200).send({
+                message: 'Uploaded the file successfully: ' + file.originalname,
+                url: imagem,
             });
-
-            blobStream.on('error', (err) => {
-                res.status(500).send({ message: err.message });
-            });
-
-            const fileName = req.file.originalname;
-            const url = 'productImages/' + fileName;
-
-            blobStream.on('finish', async () => {
-                // create a url to access file
-                const publicURL = format(
-                    `https://storage.googleapis.com/${bucket.name}/productImages/${blob.name}`,
-                );
-
-                try {
-                    await bucket.upload(fileName, {
-                        destination: url,
-                    });
-                } catch {
-                    return res.status(500).send({
-                        message: `Uploaded the file successfully: ${fileName}, but public access is denied!`,
-                        url: publicURL,
-                    });
-                }
-
-                res.status(200).send({
-                    message:
-                        'Uploaded the file successfully: ' +
-                        req.file.originalname,
-                    url: publicURL,
-                });
-            });
-            blobStream.end(req.file.buffer);
-        } catch (err) {
-            if (err.code == 'LIMIT_FILE_SIZE') {
-                return res.status(500).send({
-                    message: 'File size cannot be larger than 25MB!',
-                });
-            }
-
-            res.status(500).send({
-                message: `Could not upload the file: ${req.file.originalname}. ${err}`,
+        } catch (error) {
+            return res.status(500).send({
+                message: `Uploaded the file successfully, but public access is denied!`,
+                url: error.message,
             });
         }
     }
+
     // async create(
     //     @UploadedFile() file: Express.Multer.File,
     //     @Res() res: Response,

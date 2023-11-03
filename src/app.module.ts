@@ -13,6 +13,7 @@ import { UserModule } from './modules/user/user.module';
 import { VariantController } from './modules/variant/variant.controller';
 import { VariantModule } from './modules/variant/variant.module';
 import { VariantService } from './modules/variant/variant.service';
+import { RequestItemModule } from './modules/request-item/request-item.module';
 
 @Module({
     imports: [
@@ -24,6 +25,7 @@ import { VariantService } from './modules/variant/variant.service';
         UserModule,
         ClientModule,
         StorageModule,
+        RequestItemModule,
     ],
     controllers: [CategoriesController, ProductController, VariantController],
     providers: [CategoryService, ProductService, VariantService],
