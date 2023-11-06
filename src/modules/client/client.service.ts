@@ -61,7 +61,11 @@ export class ClientService {
     }
 
     async findAll(): Promise<ClientDTO[]> {
-        const clients = await this.prisma.client.findMany();
+        const clients = await this.prisma.client.findMany({
+            include: {
+                endereco: true,
+            },
+        });
 
         return clients;
     }
