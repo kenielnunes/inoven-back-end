@@ -6,18 +6,23 @@ import {
     HttpStatus,
     Param,
     Post,
+    Query,
     Res,
     UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jtw-auth.guard';
+import { PaginationDTO } from '../pagination/dto/pagination.dto';
+import { PaginationService } from '../pagination/pagination.service';
 import { ClientService } from './client.service';
 import { ClientDTO } from './dto/client.dto';
-import { FindClientsDTO } from './dto/find-clients.dto';
 
 @Controller('clients')
 export class ClientController {
-    constructor(private readonly clientService: ClientService) {}
+    constructor(
+        private readonly clientService: ClientService,
+        private paginationService: PaginationService,
+    ) {}
 
     @UseGuards(JwtAuthGuard)
     @Post()
@@ -40,8 +45,15 @@ export class ClientController {
 
     @UseGuards(JwtAuthGuard)
     @Get()
-    async findAll(@Body() data: FindClientsDTO) {
-        return await this.clientService.findAll(data);
+    async findAll(@Query() paginationDto: PaginationDTO) {
+        const { page, limit } = paginationDto;
+        const clients = await this.clientService.findAll();
+        const paginatedResult = this.paginationService.paginate(
+            clients,
+            page,
+            limit,
+        );
+        return paginatedResult;
     }
 
     @Get(':id')

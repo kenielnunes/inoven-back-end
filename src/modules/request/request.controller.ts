@@ -49,7 +49,7 @@ export class RequestController {
     }
 
     @Get()
-    async findAll(@Query() queryParams: RequestDTO, @Res() res: Response) {
+    async findAll(@Query('') queryParams: RequestDTO, @Res() res: Response) {
         try {
             const filteredRequests = await this.requestService.findAll();
             return res.status(HttpStatus.OK).send({

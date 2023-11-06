@@ -7,15 +7,21 @@ import {
     Param,
     Post,
     Put,
+    Query,
     Res,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { PaginationDTO } from '../pagination/dto/pagination.dto';
+import { PaginationService } from '../pagination/pagination.service';
 import { ProductDTO } from './dto/product.dto';
 import { ProductService } from './product.service';
 
 @Controller('products')
 export class ProductController {
-    constructor(private readonly productService: ProductService) {}
+    constructor(
+        private readonly productService: ProductService,
+        private paginationService: PaginationService,
+    ) {}
 
     @Post()
     async create(@Body() createCategoryDto: ProductDTO, @Res() res: Response) {
@@ -36,12 +42,19 @@ export class ProductController {
     }
 
     @Get()
-    async findAll(@Res() res: Response) {
-        const categories = await this.productService.findAll();
+    @Get()
+    async findAll(@Res() res: Response, @Query() paginationDto: PaginationDTO) {
+        const { page, limit } = paginationDto;
 
-        return res.status(HttpStatus.CREATED).send({
-            content: categories,
-        });
+        const products = await this.productService.findAll();
+
+        const paginatedResult = this.paginationService.paginate(
+            products,
+            page,
+            limit,
+        );
+
+        return res.status(HttpStatus.CREATED).send(paginatedResult);
     }
 
     @Get(':id')

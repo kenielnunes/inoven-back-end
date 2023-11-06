@@ -5,5 +5,5 @@ export class ClientDTO {
     nome: string;
     telefone: string;
     email: string;
-    endereco: Address;
+    endereco?: Address;
 }
