@@ -53,7 +53,8 @@ export class ClientService {
                 complemento: data.endereco.complemento,
                 numero: data.endereco.numero,
                 rua: data.endereco.rua,
-                cliente_id: client.id,
+                clienteId: client.id,
+                cidade: data.endereco.cidade,
             },
         });
 

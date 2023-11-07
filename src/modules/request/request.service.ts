@@ -18,19 +18,17 @@ export class RequestService {
     ) {}
 
     async create(data: RequestDTO): Promise<RequestDTO> {
-        await this.clientService.findOne(data.cliente_id); //verifica se o cliente existe
+        await this.clientService.findOne(data.clienteId); //verifica se o cliente existe
 
-        await this.enumValidate.isValidPaymentMethod(data.forma_pagamento); //verifica se o método de pagamento é válido
+        await this.enumValidate.isValidPaymentMethod(data.formaPagamento); //verifica se o método de pagamento é válido
 
         await this.enumValidate.isValidStatus(data.status); // verifica se o status é valido
 
-        await this.enumValidate.isValidDeliveryModality(
-            data.modalidade_entrega,
-        ); // verifica se a modalidade de entrega é valida
+        await this.enumValidate.isValidDeliveryModality(data.modalidadeEntrega); // verifica se a modalidade de entrega é valida
 
-        for (const item of data.itens_pedido) {
+        for (const item of data.itensPedido) {
             const existsProduct = await this.productService.findOne(
-                item.produto_id,
+                item.produtoId,
             );
 
             if (!existsProduct) {
@@ -40,10 +38,10 @@ export class RequestService {
 
         const requestCreateData = {
             ...data,
-            data_pedido: formatDateToDateTime(data.data_pedido),
-            data_entrega: formatDateToDateTime(data.data_entrega),
-            itens_pedido: {
-                create: data.itens_pedido,
+            dataPedido: formatDateToDateTime(data.dataPedido),
+            dataEntrega: formatDateToDateTime(data.dataEntrega),
+            itensPedido: {
+                create: data.itensPedido,
             },
         };
 
@@ -68,7 +66,7 @@ export class RequestService {
             //     },
             include: {
                 cliente: true,
-                itens_pedido: true,
+                itensPedido: true,
             },
         });
 

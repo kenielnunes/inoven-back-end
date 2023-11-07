@@ -45,8 +45,8 @@ datasource db {
 
 model Category {
   id            Int          @id @default(autoincrement())
-  descricao     String
-  Product       Product[]
+  descricao     String 
+  produtos      Product[]
 
   @@map("categoria")
 }
@@ -54,7 +54,7 @@ model Category {
 model Variation {
   id            Int          @id @default(autoincrement())
   descricao     String
-  Product       Product[]
+  produtos       Product[]
 
   @@map("variacao")
 }
@@ -64,7 +64,7 @@ model User {
   nome        String
   email       String
   senha       String
-  nivel_acesso UserType
+  nivelAcesso UserType @map("nivel_acesso")
   situacao    UserSituation
 
   @@map("usuario")
@@ -84,62 +84,64 @@ model Client {
 model Address {
   id          Int    @id @default(autoincrement())
   cep         String
+  cidade      String
   bairro      String
   rua         String
   numero      String
-  complemento String
-  cliente     Client @relation(fields: [cliente_id], references: [id])
-  cliente_id   Int @unique
+  complemento String?
+  cliente     Client @relation(fields: [clienteId], references: [id])
+  clienteId   Int @unique @map("cliente_id")
 
   @@map("endereco")
 }
 
 model ProductImages {
-  id  Int    @id @default(autoincrement())
-  path String
-  produto       Product     @relation(fields: [produto_id], references: [id])
-  produto_id     Int  
+  id          Int    @id @default(autoincrement())
+  path        String
+  produto     Product @relation(fields: [produtoId], references: [id])
+  produtoId   Int  @map("produto_id")
 
   @@map("imagem_produto")
 }
 
 model Product {
-  id          Int          @id @default(autoincrement())
-  descricao   String
-  categoria_id Int          
-  categoria   Category     @relation(fields: [categoria_id], references: [id])
-  variacao_id  Int          
-  variacao    Variation    @relation(fields: [variacao_id], references: [id])
-  unidade     Unit
-  itens_pedido  RequestItem[]
-  imagem_produto ProductImages[]
+  id                Int          @id @default(autoincrement())
+  descricao         String
+  categoriaId       Int          @map("categoria_id")      
+  categoria         Category     @relation(fields: [categoriaId], references: [id])
+  variacaoId        Int          @map("variacao_id")   
+  variacao          Variation    @relation(fields: [variacaoId], references: [id])
+  unidade           Unit
+  itensPedido       RequestItem[] 
+  imagensProduto    ProductImages[]
 
   @@map("produto")
 }
 
 model Request {
-  id                Int              @id @default(autoincrement())
-  cliente           Client           @relation(fields: [cliente_id], references: [id])
-  cliente_id         Int
-  data_pedido        DateTime         @default(now())
-  data_entrega       DateTime
-  status            Status
-  forma_pagamento    PaymentMethods
-  modalidade_entrega DeliveryModality
-  itens_pedido        RequestItem[]
+  id                Int      @id @default(autoincrement())
+  cliente           Client   @relation(fields: [clienteId], references: [id])
+  clienteId         Int @map("cliente_id")
+  dataPedido        DateTime @default(now()) @map("data_pedido")
+  dataEntrega       DateTime @map("data_entrega")
+  status            Status  
+  formaPagamento    PaymentMethods @map("forma_pagamento")
+  modalidadeEntrega DeliveryModality @map("modalidade_entrega")
+  itensPedido       RequestItem[]
+  observacao        String?
 
   @@map("pedido")
 }
 
 model RequestItem {
   id            Int         @id @default(autoincrement())
-  pedido        Request     @relation(fields: [pedido_id], references: [id])
-  pedido_id      Int
-  produto       Product     @relation(fields: [produto_id], references: [id])
-  produto_id     Int  
+  pedido        Request     @relation(fields: [pedidoId], references: [id])
+  pedidoId      Int   @map("pedido_id")
+  produto       Product     @relation(fields: [produtoId], references: [id])
+  produtoId     Int  @map("produto_id")
   quantidade    Int
   observacao    String?
-  valor_unitario Float
+  valorUnitario Float @map("valor_unitario")
 
   @@map("item_pedido")
 }

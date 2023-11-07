@@ -15,7 +15,7 @@ export class UserDTO {
     @IsEnum(UserType, {
         message: `É apenas valido os valores: ${Object.keys(UserType)}`,
     })
-    nivel_acesso: UserType;
+    nivelAcesso: UserType;
     @IsEnum(UserSituation, {
         message: `É apenas valido os valores: ${Object.keys(UserSituation)}`,
     })

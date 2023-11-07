@@ -15,7 +15,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
-import { StorageService } from '../google/storage/storage.service';
 import { PaginationDTO } from '../pagination/dto/pagination.dto';
 import { PaginationService } from '../pagination/pagination.service';
 import { ProductDTO } from './dto/product.dto';
@@ -23,7 +22,7 @@ import { ProductService } from './product.service';
 
 @Controller('products')
 @UseInterceptors(
-    FileInterceptor('imagem_produto', {
+    FileInterceptor('imagensProduto', {
         storage: diskStorage({
             destination: './src/modules/google/storage/assets/uploads',
             filename: (req, file, cb) => {
@@ -38,37 +37,25 @@ export class ProductController {
     constructor(
         private productService: ProductService,
         private paginationService: PaginationService,
-        private storageService: StorageService,
     ) {}
 
     @Post()
     async create(
-        @UploadedFile() imagem_produto: Express.Multer.File,
+        @UploadedFile() imagensProduto: Express.Multer.File,
         @Res() res: Response,
         @Body() createCategoryDto: ProductDTO,
     ) {
-        console.log(createCategoryDto);
         try {
-            const imagem = await this.storageService.upload(
-                imagem_produto,
-                'productImages',
-            );
-            console.log(imagem);
             const created = await this.productService.create({
                 ...createCategoryDto,
-                categoria_id: Number(createCategoryDto.categoria_id),
-                variacao_id: Number(createCategoryDto.variacao_id),
-                imagem_produto: imagem,
+                categoriaId: Number(createCategoryDto.categoriaId),
+                variacaoId: Number(createCategoryDto.variacaoId),
+                imagensProduto: imagensProduto,
             });
-
-            console.log('created product ->', created);
 
             return res.status(HttpStatus.CREATED).send({
                 statusCode: HttpStatus.CREATED,
-                content: {
-                    ...createCategoryDto,
-                    imagem_produto: imagem,
-                },
+                content: created,
                 message: 'Produto criado com sucesso!',
             });
         } catch (error) {

@@ -3,11 +3,11 @@ import { RequestItemDTO } from 'src/modules/request-item/dto/request-item.dto';
 
 export class RequestDTO {
     id?: number;
-    cliente_id: number;
-    data_pedido: Date;
-    data_entrega: Date;
+    clienteId: number;
+    dataPedido: Date;
+    dataEntrega: Date;
     status: Status;
-    forma_pagamento: PaymentMethods;
-    modalidade_entrega: DeliveryModality;
-    itens_pedido?: Partial<RequestItemDTO[]>;
+    formaPagamento: PaymentMethods;
+    modalidadeEntrega: DeliveryModality;
+    itensPedido?: Partial<RequestItemDTO[]>;
 }

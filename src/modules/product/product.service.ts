@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/PrismaService';
+import { StorageService } from '../google/storage/storage.service';
 import { ProductDTO } from './dto/product.dto';
 
 @Injectable()
 export class ProductService {
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private prisma: PrismaService,
+        private storageService: StorageService,
+    ) {}
 
     async create(data: ProductDTO): Promise<ProductDTO> {
         console.log('data ->', data);
@@ -17,13 +21,13 @@ export class ProductService {
 
         const categoryExists = await this.prisma.category.findFirst({
             where: {
-                id: Number(data.categoria_id),
+                id: Number(data.categoriaId),
             },
         });
 
         const variationExists = await this.prisma.variation.findFirst({
             where: {
-                id: Number(data.variacao_id),
+                id: Number(data.variacaoId),
             },
         });
 
@@ -43,20 +47,32 @@ export class ProductService {
         //     file: data.imagem_produto,
         // });
 
+        const imagem = await this.storageService.upload(
+            data.imagensProduto,
+            'productImages',
+        );
+
         const product = await this.prisma.product.create({
             data: {
                 ...data,
-                categoria_id: Number(data.categoria_id),
-                variacao_id: Number(data.variacao_id),
-                imagem_produto: {
+                categoriaId: Number(data.categoriaId),
+                variacaoId: Number(data.variacaoId),
+                imagensProduto: {
                     create: {
-                        path: data.imagem_produto,
+                        path: imagem,
                     },
                 },
             },
         });
 
-        return product;
+        return {
+            ...product,
+            imagensProduto: [
+                {
+                    path: imagem,
+                },
+            ],
+        };
     }
 
     async findAll() {
@@ -64,7 +80,7 @@ export class ProductService {
             include: {
                 categoria: true, // Nome do relacionamento com a tabela de categoria
                 variacao: true, // Nome do relacionamento com a tabela de variação
-                imagem_produto: true,
+                imagensProduto: true,
             },
         });
 
@@ -74,7 +90,7 @@ export class ProductService {
             categoria: product.categoria,
             variacao: product.variacao,
             unidade: product.unidade,
-            imagem_produto: product.imagem_produto,
+            imagensProduto: product.imagensProduto,
         }));
 
         return productDTOs;
