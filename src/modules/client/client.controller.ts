@@ -6,6 +6,7 @@ import {
     HttpStatus,
     Param,
     Post,
+    Put,
     Query,
     Res,
     UseGuards,
@@ -64,6 +65,28 @@ export class ClientController {
             statusCode: HttpStatus.OK,
             content: client,
         });
+    }
+
+    @Put(':id')
+    async update(
+        @Param('id') id: string,
+        @Body() data: ClientDTO,
+        @Res() res: Response,
+    ) {
+        try {
+            await this.clientService.update(+id, data);
+
+            return res.status(HttpStatus.OK).send({
+                statusCode: HttpStatus.OK,
+                content: data,
+                message: 'Cliente atualizado com sucesso!',
+            });
+        } catch (error) {
+            return res.status(HttpStatus.BAD_REQUEST).send({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: error.message ?? 'Erro ao editar',
+            });
+        }
     }
 
     @Delete(':id')

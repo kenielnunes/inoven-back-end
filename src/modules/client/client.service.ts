@@ -84,8 +84,18 @@ export class ClientService {
         return client;
     }
 
-    update(id: number) {
-        return `This action updates a #${id} client`;
+    async update(id: number, data: ClientDTO) {
+        return await this.prisma.client.update({
+            where: {
+                id: id,
+            },
+            data: {
+                ...data,
+                endereco: {
+                    update: data.endereco,
+                },
+            },
+        });
     }
 
     async remove(id: number) {
