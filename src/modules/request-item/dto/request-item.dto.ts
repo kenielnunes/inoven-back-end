@@ -1,9 +1,9 @@
 export class RequestItemDTO {
     id?: number;
-    pedidoId: number;
-    produtoId: number;
+    pedido_id: number;
+    produto_id: number;
     quantidade: number;
     observacao: string | null;
     imagem: string | null;
-    valorUnitario: number;
+    valor_unitario: number;
 }

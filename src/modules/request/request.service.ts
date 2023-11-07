@@ -18,27 +18,19 @@ export class RequestService {
     ) {}
 
     async create(data: RequestDTO): Promise<RequestDTO> {
-        await this.clientService.findOne(data.clienteId); //verifica se o cliente existe
+        await this.clientService.findOne(data.cliente_id); //verifica se o cliente existe
 
-        await this.enumValidate.isValidPaymentMethod(data.formaPagamento); //verifica se o método de pagamento é válido
+        await this.enumValidate.isValidPaymentMethod(data.forma_pagamento); //verifica se o método de pagamento é válido
 
         await this.enumValidate.isValidStatus(data.status); // verifica se o status é valido
 
-        await this.enumValidate.isValidDeliveryModality(data.modalidadeEntrega); // verifica se a modalidade de entrega é valida
+        await this.enumValidate.isValidDeliveryModality(
+            data.modalidade_entrega,
+        ); // verifica se a modalidade de entrega é valida
 
-        for (const item of data.itensPedido) {
-            // const imagem = item.imagem as unknown as Express.Multer.File;
-
-            // log(imagem);
-            // const createdImage = await this.storageService.upload(
-            //     imagem,
-            //     'productImages',
-            // );
-
-            // log(createdImage);
-
+        for (const item of data.itens_pedido) {
             const existsProduct = await this.productService.findOne(
-                item.produtoId,
+                item.produto_id,
             );
 
             if (!existsProduct) {
@@ -48,10 +40,10 @@ export class RequestService {
 
         const requestCreateData = {
             ...data,
-            dataPedido: formatDateToDateTime(data.dataPedido),
-            dataEntrega: formatDateToDateTime(data.dataEntrega),
-            itensPedido: {
-                create: data.itensPedido,
+            data_pedido: formatDateToDateTime(data.data_pedido),
+            data_entrega: formatDateToDateTime(data.data_entrega),
+            itens_pedido: {
+                create: data.itens_pedido,
             },
         };
 
@@ -76,7 +68,7 @@ export class RequestService {
             //     },
             include: {
                 cliente: true,
-                itensPedido: true,
+                itens_pedido: true,
             },
         });
 

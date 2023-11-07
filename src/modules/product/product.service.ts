@@ -7,6 +7,8 @@ export class ProductService {
     constructor(private prisma: PrismaService) {}
 
     async create(data: ProductDTO): Promise<ProductDTO> {
+        console.log('data ->', data);
+
         const productExists = await this.prisma.product.findFirst({
             where: {
                 descricao: data.descricao,
@@ -15,13 +17,13 @@ export class ProductService {
 
         const categoryExists = await this.prisma.category.findFirst({
             where: {
-                id: data.categoriaId,
+                id: Number(data.categoria_id),
             },
         });
 
         const variationExists = await this.prisma.variation.findFirst({
             where: {
-                id: data.variacaoId,
+                id: Number(data.variacao_id),
             },
         });
 
@@ -37,8 +39,21 @@ export class ProductService {
             throw new Error('O produto já existe');
         }
 
+        // const teste = await axios.post('http://localhost:3000/images', {
+        //     file: data.imagem_produto,
+        // });
+
         const product = await this.prisma.product.create({
-            data: data,
+            data: {
+                ...data,
+                categoria_id: Number(data.categoria_id),
+                variacao_id: Number(data.variacao_id),
+                imagem_produto: {
+                    create: {
+                        path: data.imagem_produto,
+                    },
+                },
+            },
         });
 
         return product;
@@ -49,6 +64,7 @@ export class ProductService {
             include: {
                 categoria: true, // Nome do relacionamento com a tabela de categoria
                 variacao: true, // Nome do relacionamento com a tabela de variação
+                imagem_produto: true,
             },
         });
 
@@ -58,6 +74,7 @@ export class ProductService {
             categoria: product.categoria,
             variacao: product.variacao,
             unidade: product.unidade,
+            imagem_produto: product.imagem_produto,
         }));
 
         return productDTOs;

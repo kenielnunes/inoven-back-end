@@ -9,28 +9,66 @@ import {
     Put,
     Query,
     Res,
+    UploadedFile,
+    UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import { diskStorage } from 'multer';
+import { StorageService } from '../google/storage/storage.service';
 import { PaginationDTO } from '../pagination/dto/pagination.dto';
 import { PaginationService } from '../pagination/pagination.service';
 import { ProductDTO } from './dto/product.dto';
 import { ProductService } from './product.service';
 
 @Controller('products')
+@UseInterceptors(
+    FileInterceptor('imagem_produto', {
+        storage: diskStorage({
+            destination: './src/modules/google/storage/assets/uploads',
+            filename: (req, file, cb) => {
+                console.log(file);
+                //Calling the callback passing the random name generated with the original extension name
+                cb(null, `${file.originalname}`);
+            },
+        }),
+    }),
+)
 export class ProductController {
     constructor(
-        private readonly productService: ProductService,
+        private productService: ProductService,
         private paginationService: PaginationService,
+        private storageService: StorageService,
     ) {}
 
     @Post()
-    async create(@Body() createCategoryDto: ProductDTO, @Res() res: Response) {
+    async create(
+        @UploadedFile() imagem_produto: Express.Multer.File,
+        @Res() res: Response,
+        @Body() createCategoryDto: ProductDTO,
+    ) {
+        console.log(createCategoryDto);
         try {
-            const created = await this.productService.create(createCategoryDto);
+            const imagem = await this.storageService.upload(
+                imagem_produto,
+                'productImages',
+            );
+            console.log(imagem);
+            const created = await this.productService.create({
+                ...createCategoryDto,
+                categoria_id: Number(createCategoryDto.categoria_id),
+                variacao_id: Number(createCategoryDto.variacao_id),
+                imagem_produto: imagem,
+            });
+
+            console.log('created product ->', created);
 
             return res.status(HttpStatus.CREATED).send({
                 statusCode: HttpStatus.CREATED,
-                content: created,
+                content: {
+                    ...createCategoryDto,
+                    imagem_produto: imagem,
+                },
                 message: 'Produto criado com sucesso!',
             });
         } catch (error) {
@@ -41,7 +79,6 @@ export class ProductController {
         }
     }
 
-    @Get()
     @Get()
     async findAll(@Res() res: Response, @Query() paginationDto: PaginationDTO) {
         const { page, limit } = paginationDto;

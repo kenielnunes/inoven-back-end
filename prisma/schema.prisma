@@ -46,7 +46,7 @@ datasource db {
 model Category {
   id            Int          @id @default(autoincrement())
   descricao     String
-  Product       Product?
+  Product       Product[]
 
   @@map("categoria")
 }
@@ -54,7 +54,7 @@ model Category {
 model Variation {
   id            Int          @id @default(autoincrement())
   descricao     String
-  Product       Product?
+  Product       Product[]
 
   @@map("variacao")
 }
@@ -64,7 +64,7 @@ model User {
   nome        String
   email       String
   senha       String
-  tipoUsuario UserType
+  nivel_acesso UserType
   situacao    UserSituation
 
   @@map("usuario")
@@ -88,49 +88,58 @@ model Address {
   rua         String
   numero      String
   complemento String
-  cliente     Client @relation(fields: [clienteId], references: [id])
-  clienteId   Int @unique
+  cliente     Client @relation(fields: [cliente_id], references: [id])
+  cliente_id   Int @unique
 
   @@map("endereco")
+}
+
+model ProductImages {
+  id  Int    @id @default(autoincrement())
+  path String
+  produto       Product     @relation(fields: [produto_id], references: [id])
+  produto_id     Int  
+
+  @@map("imagem_produto")
 }
 
 model Product {
   id          Int          @id @default(autoincrement())
   descricao   String
-  categoriaId Int          @unique
-  categoria   Category     @relation(fields: [categoriaId], references: [id])
-  variacaoId  Int          @unique
-  variacao    Variation    @relation(fields: [variacaoId], references: [id])
+  categoria_id Int          
+  categoria   Category     @relation(fields: [categoria_id], references: [id])
+  variacao_id  Int          
+  variacao    Variation    @relation(fields: [variacao_id], references: [id])
   unidade     Unit
-  itemPedido  RequestItem[]
+  itens_pedido  RequestItem[]
+  imagem_produto ProductImages[]
 
   @@map("produto")
 }
 
 model Request {
   id                Int              @id @default(autoincrement())
-  cliente           Client           @relation(fields: [clienteId], references: [id])
-  clienteId         Int
-  dataPedido        DateTime         @default(now())
-  dataEntrega       DateTime
+  cliente           Client           @relation(fields: [cliente_id], references: [id])
+  cliente_id         Int
+  data_pedido        DateTime         @default(now())
+  data_entrega       DateTime
   status            Status
-  formaPagamento    PaymentMethods
-  modalidadeEntrega DeliveryModality
-  itensPedido        RequestItem[]
+  forma_pagamento    PaymentMethods
+  modalidade_entrega DeliveryModality
+  itens_pedido        RequestItem[]
 
   @@map("pedido")
 }
 
 model RequestItem {
   id            Int         @id @default(autoincrement())
-  pedido        Request     @relation(fields: [pedidoId], references: [id])
-  pedidoId      Int
-  produto       Product     @relation(fields: [produtoId], references: [id])
-  produtoId     Int  
+  pedido        Request     @relation(fields: [pedido_id], references: [id])
+  pedido_id      Int
+  produto       Product     @relation(fields: [produto_id], references: [id])
+  produto_id     Int  
   quantidade    Int
   observacao    String?
-  imagem        String?
-  valorUnitario Float
+  valor_unitario Float
 
   @@map("item_pedido")
 }
