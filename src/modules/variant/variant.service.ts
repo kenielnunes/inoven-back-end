@@ -24,8 +24,8 @@ export class VariantService {
         return category;
     }
 
-    findAll() {
-        return `This action returns all variant`;
+    async findAll() {
+        return await this.prisma.variation.findMany();
     }
 
     findOne(id: number) {

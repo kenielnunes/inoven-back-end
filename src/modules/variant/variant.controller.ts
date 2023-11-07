@@ -15,7 +15,7 @@ import { JwtAuthGuard } from '../auth/jtw-auth.guard';
 import { VariantDTO } from './dto/vartiant.dto';
 import { VariantService } from './variant.service';
 
-@Controller('variants')
+@Controller('variations')
 export class VariantController {
     constructor(private readonly variantService: VariantService) {}
 
@@ -39,8 +39,12 @@ export class VariantController {
     }
 
     @Get()
-    findAll() {
-        return this.variantService.findAll();
+    async findAll(@Res() res: Response) {
+        const variations = await this.variantService.findAll();
+        return res.status(HttpStatus.OK).send({
+            statusCode: HttpStatus.OK,
+            content: variations,
+        });
     }
 
     @Get(':id')
