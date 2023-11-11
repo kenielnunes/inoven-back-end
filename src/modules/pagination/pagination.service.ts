@@ -15,23 +15,27 @@ export class PaginationService {
         const paginatedItems = items.slice(startIndex, endIndex);
 
         return {
+            pagination: {
+                page: currentPage,
+                limit: limit,
+                totalItems: totalItems,
+                totalPages: totalPages,
+                prevPage: prevPage,
+                nextPage: nextPage,
+            },
             content: paginatedItems,
-            page: currentPage,
-            limit: limit,
-            totalItems: totalItems,
-            totalPages: totalPages,
-            prevPage: prevPage,
-            nextPage: nextPage,
         };
     }
 }
 
 export interface Pagination<T> {
     content: T[];
-    page: number;
-    limit: number;
-    totalItems: number;
-    totalPages: number;
-    prevPage: number | null;
-    nextPage: number | null;
+    pagination: {
+        page: number;
+        limit: number;
+        totalItems: number;
+        totalPages: number;
+        prevPage: number | null;
+        nextPage: number | null;
+    };
 }
