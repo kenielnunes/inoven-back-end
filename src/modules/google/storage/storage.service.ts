@@ -1,6 +1,7 @@
 import { Storage } from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
 import { log } from 'console';
+import * as fs from 'fs';
 import { PrismaService } from 'src/database/PrismaService';
 import { format } from 'url';
 
@@ -45,14 +46,15 @@ export class StorageService {
                 {
                     destination: `${destinationUrl}/${fileName}`,
                 },
-                function (err) {
+                async (err) => {
                     if (err) {
-                        console.error(
+                        throw new Error(
                             `Error uploading image ${file.originalname}: ${err}`,
                         );
                     } else {
-                        console.log(
-                            `Image ${file.originalname} uploaded to ${bucket.name}.`,
+                        // Após o upload bem-sucedido, exclui o arquivo local
+                        fs.unlinkSync(
+                            `./src/modules/google/storage/assets/uploads/${file.originalname}`,
                         );
                     }
                 },
