@@ -14,16 +14,12 @@ import {
 import { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jtw-auth.guard';
 import { PaginationDTO } from '../pagination/dto/pagination.dto';
-import { PaginationService } from '../pagination/pagination.service';
 import { ClientService } from './client.service';
 import { ClientDTO } from './dto/client.dto';
 
 @Controller('clients')
 export class ClientController {
-    constructor(
-        private readonly clientService: ClientService,
-        private paginationService: PaginationService,
-    ) {}
+    constructor(private readonly clientService: ClientService) {}
 
     @UseGuards(JwtAuthGuard)
     @Post()
@@ -46,15 +42,14 @@ export class ClientController {
 
     @UseGuards(JwtAuthGuard)
     @Get()
-    async findAll(@Query() paginationDto: PaginationDTO) {
-        const { page, limit } = paginationDto;
-        const clients = await this.clientService.findAll();
-        const paginatedResult = this.paginationService.paginate(
-            clients,
-            page,
-            limit,
-        );
-        return paginatedResult;
+    async findAll(@Query() pagination: PaginationDTO, @Res() res: Response) {
+        try {
+            const clients = await this.clientService.findAll(pagination);
+
+            return res.status(HttpStatus.CREATED).send(clients);
+        } catch (error) {
+            throw new Error(error.message);
+        }
     }
 
     @Get(':id')

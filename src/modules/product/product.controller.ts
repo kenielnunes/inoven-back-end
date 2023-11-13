@@ -9,39 +9,33 @@ import {
     Put,
     Query,
     Res,
-    UploadedFile,
+    UploadedFiles,
     UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
-import { PaginationDTO } from '../pagination/dto/pagination.dto';
-import { PaginationService } from '../pagination/pagination.service';
+import { GetProductsDTO } from './dto/get-products.dto';
 import { ProductDTO } from './dto/product.dto';
 import { ProductService } from './product.service';
 
 @Controller('products')
 @UseInterceptors(
-    FileInterceptor('imagensProduto', {
+    FilesInterceptor('imagensProduto', 5, {
         storage: diskStorage({
             destination: './src/modules/google/storage/assets/uploads',
             filename: (req, file, cb) => {
-                console.log(file);
-                //Calling the callback passing the random name generated with the original extension name
                 cb(null, `${file.originalname}`);
             },
         }),
     }),
 )
 export class ProductController {
-    constructor(
-        private productService: ProductService,
-        private paginationService: PaginationService,
-    ) {}
+    constructor(private productService: ProductService) {}
 
     @Post()
     async create(
-        @UploadedFile() imagensProduto: Express.Multer.File,
+        @UploadedFiles() imagensProduto: Array<Express.Multer.File>,
         @Res() res: Response,
         @Body() createCategoryDto: ProductDTO,
     ) {
@@ -67,18 +61,19 @@ export class ProductController {
     }
 
     @Get()
-    async findAll(@Res() res: Response, @Query() paginationDto: PaginationDTO) {
-        const { page, limit } = paginationDto;
+    async findAll(
+        @Res() res: Response,
+        @Query() paginationDto: GetProductsDTO,
+    ) {
+        const products = await this.productService.findAll(paginationDto);
 
-        const products = await this.productService.findAll();
+        // const paginatedResult = this.paginationService.paginate(
+        //     products,
+        //     page,
+        //     limit,
+        // );
 
-        const paginatedResult = this.paginationService.paginate(
-            products,
-            page,
-            limit,
-        );
-
-        return res.status(HttpStatus.CREATED).send(paginatedResult);
+        return res.status(HttpStatus.CREATED).send(products);
     }
 
     @Get(':id')

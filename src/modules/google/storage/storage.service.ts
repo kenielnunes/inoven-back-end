@@ -1,6 +1,5 @@
 import { Storage } from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
-import { log } from 'console';
 import * as fs from 'fs';
 import { PrismaService } from 'src/database/PrismaService';
 import { format } from 'url';
@@ -23,11 +22,11 @@ export class StorageService {
         }
 
         const blob = bucket.file(file.originalname);
-        log('blob', blob);
+        // log('blob', blob);
         const blobStream = blob.createWriteStream({
             resumable: false,
         });
-        log('streamBlob', blobStream);
+        // log('streamBlob', blobStream);
 
         blobStream.on('error', () => {
             throw new Error('erro no blob');

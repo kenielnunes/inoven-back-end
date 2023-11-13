@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/PrismaService';
 
+import { PaginationDTO } from '../pagination/dto/pagination.dto';
+import {
+    PaginateFunction,
+    PaginatedResult,
+    paginator,
+} from '../pagination/pagination.service';
 import { ClientDTO } from './dto/client.dto';
 
 @Injectable()
@@ -61,20 +67,30 @@ export class ClientService {
         return data;
     }
 
-    async findAll(): Promise<ClientDTO[]> {
-        const clients = await this.prisma.client.findMany({
-            include: {
-                endereco: true,
-            },
-        });
+    async findAll({
+        page,
+        limit,
+    }: PaginationDTO): Promise<PaginatedResult<ClientDTO>> {
+        const paginate: PaginateFunction = paginator({ perPage: limit });
 
-        return clients;
+        return paginate(
+            this.prisma.client,
+            {
+                include: {
+                    endereco: true,
+                },
+            },
+            {
+                page: page,
+                perPage: limit,
+            },
+        );
     }
 
     async findOne(id: number) {
         const client = await this.prisma.client.findFirst({
             where: {
-                id: id,
+                id,
             },
         });
 
@@ -106,9 +122,35 @@ export class ClientService {
             throw new Error('Cliente não encontrado');
         }
 
+        const associatedAddressId = existsClient.id;
+
+        if (associatedAddressId) {
+            // Check if the associated address exists
+            const existsAddress = await this.prisma.address.findUnique({
+                where: {
+                    clienteId: associatedAddressId,
+                },
+            });
+
+            if (existsAddress) {
+                // If the associated address exists, delete it
+                await this.prisma.address.delete({
+                    where: {
+                        clienteId: associatedAddressId,
+                    },
+                });
+            } else {
+                console.warn(
+                    'Associated address not found for client:',
+                    existsClient,
+                );
+            }
+        }
+
+        // Now, you can safely remove the client
         return await this.prisma.client.delete({
             where: {
-                id: id,
+                id: Number(id),
             },
         });
     }

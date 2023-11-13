@@ -7,7 +7,6 @@ import { ClientModule } from './modules/client/client.module';
 import { StorageModule } from './modules/google/storage/storage.module';
 import { StorageService } from './modules/google/storage/storage.service';
 import { PaginationModule } from './modules/pagination/pagination.module';
-import { PaginationService } from './modules/pagination/pagination.service';
 import { ProductImagesController } from './modules/product-images/product-images.controller';
 import { ProductImagesModule } from './modules/product-images/product-images.module';
 import { ProductImagesService } from './modules/product-images/product-images.service';
@@ -47,7 +46,6 @@ import { VariantService } from './modules/variant/variant.service';
         ProductService,
         StorageService,
         VariantService,
-        PaginationService,
         ProductImagesService,
     ],
     exports: [],
