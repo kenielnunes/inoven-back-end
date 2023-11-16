@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { log } from 'console';
 import { PrismaService } from 'src/database/PrismaService';
 import { StorageService } from '../google/storage/storage.service';
@@ -83,26 +84,37 @@ export class ProductService {
         };
     }
 
-    async findAll({
-        page,
-        perPage,
-    }: GetProductsDTO): Promise<PaginatedResult<ProductDTO>> {
-        const paginate: PaginateFunction = paginator({ perPage: perPage });
+    async findAll(
+        filter: GetProductsDTO,
+    ): Promise<PaginatedResult<ProductDTO>> {
+        const paginate: PaginateFunction = paginator({
+            perPage: filter.perPage,
+        });
 
-        return paginate(
-            this.prisma.product,
-            {
-                include: {
-                    categoria: true,
-                    variacao: true,
-                    imagensProduto: true,
+        const args: Prisma.ProductFindManyArgs = {
+            include: {
+                categoria: true,
+                variacao: true,
+                imagensProduto: true,
+            },
+            where: {
+                descricao: {
+                    contains: filter.descricao,
+                    mode: 'insensitive',
+                },
+                categoria: {
+                    descricao: {
+                        contains: filter.categoria,
+                        mode: 'insensitive',
+                    },
                 },
             },
-            {
-                page: page,
-                perPage: perPage,
-            },
-        );
+        };
+
+        return paginate(this.prisma.product, args, {
+            page: filter.page,
+            perPage: filter.perPage,
+        });
     }
 
     async findOne(id: number) {
