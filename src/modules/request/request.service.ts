@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/PrismaService';
 import { EnumValidate } from 'src/utils/enum-validate';
 import { formatDateToDateTime } from 'src/utils/format-date';
 import { ClientService } from '../client/client.service';
 import { StorageService } from '../google/storage/storage.service';
+import {
+    PaginateFunction,
+    PaginatedResult,
+    paginator,
+} from '../pagination/pagination.service';
 import { ProductService } from '../product/product.service';
 import { RequestDTO } from './dto/request.dto';
 
@@ -36,41 +42,62 @@ export class RequestService {
             }
         }
 
-        const requestCreateData = {
-            ...data,
-            dataPedido: formatDateToDateTime(data.dataPedido),
-            dataEntrega: formatDateToDateTime(data.dataEntrega),
-            itensPedido: {
-                create: data.itensPedido,
-            },
-        };
-
         // Cria o pedido
         const request = await this.prisma.request.create({
-            data: requestCreateData,
+            data: {
+                ...data,
+                dataPedido: formatDateToDateTime(data.dataPedido),
+                dataEntrega: formatDateToDateTime(data.dataEntrega),
+                itensPedido: {
+                    create: data.itensPedido,
+                },
+            },
+            include: {
+                itensPedido: true,
+            },
         });
 
         return request;
     }
 
-    async findAll() {
-        const requests = await this.prisma.request.findMany({
-            //     where: {
-            //         status: {
-            //             equals: status,
-            //         },
-            //         dataEntrega: {
-            //             lte: new Date(dataEntrega),
-            // gte: 2022-01-30,
-            //         },
-            //     },
-            include: {
-                cliente: true,
-                itensPedido: true,
-            },
+    async findAll(filter: any): Promise<PaginatedResult<RequestDTO>> {
+        const paginate: PaginateFunction = paginator({
+            perPage: filter.perPage,
         });
 
-        return requests;
+        const args: Prisma.RequestFindManyArgs = {
+            include: {
+                cliente: true,
+                itensPedido: {
+                    include: {
+                        produto: true,
+                    },
+                },
+            },
+        };
+
+        const paginatedResult = await paginate(this.prisma.request, args, {
+            page: filter.page,
+            perPage: filter.perPage,
+        });
+
+        const formattedDTO = paginatedResult.content.map(
+            (request: RequestDTO) => {
+                const totalValue = request.itensPedido.reduce(
+                    (acc, item) => acc + item.valorUnitario,
+                    0,
+                );
+                return {
+                    ...request,
+                    valorTotal: totalValue,
+                };
+            },
+        );
+
+        return {
+            ...paginatedResult,
+            content: formattedDTO,
+        };
     }
 
     async findOne(id: number) {

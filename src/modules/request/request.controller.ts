@@ -51,11 +51,10 @@ export class RequestController {
     @Get()
     async findAll(@Query('') queryParams: RequestDTO, @Res() res: Response) {
         try {
-            const filteredRequests = await this.requestService.findAll();
-            return res.status(HttpStatus.OK).send({
-                statusCode: HttpStatus.OK,
-                content: filteredRequests,
-            });
+            const filteredRequests =
+                await this.requestService.findAll(queryParams);
+
+            return res.status(HttpStatus.OK).send(filteredRequests);
         } catch (error) {
             res.status(HttpStatus.BAD_REQUEST).send({
                 statusCode: HttpStatus.BAD_REQUEST,

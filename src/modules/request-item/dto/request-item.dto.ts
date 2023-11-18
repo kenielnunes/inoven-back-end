@@ -4,6 +4,5 @@ export class RequestItemDTO {
     produtoId: number;
     quantidade: number;
     observacao: string | null;
-    imagem: string | null;
     valorUnitario: number;
 }

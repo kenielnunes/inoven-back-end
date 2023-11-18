@@ -102,12 +102,6 @@ export class ProductService {
                     contains: filter.descricao,
                     mode: 'insensitive',
                 },
-                categoria: {
-                    descricao: {
-                        contains: filter.categoria,
-                        mode: 'insensitive',
-                    },
-                },
             },
         };
 

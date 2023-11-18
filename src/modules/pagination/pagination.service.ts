@@ -30,7 +30,9 @@ export const paginator = (
 
         const skip = page > 0 ? perPage * (page - 1) : 0;
 
-        const data = await model.findMany();
+        const data = await model.findMany({
+            ...args,
+        });
 
         const req = await Promise.all([
             model.findMany({

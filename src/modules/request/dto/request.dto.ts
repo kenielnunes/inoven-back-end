@@ -9,5 +9,5 @@ export class RequestDTO {
     status: Status;
     formaPagamento: PaymentMethods;
     modalidadeEntrega: DeliveryModality;
-    itensPedido?: Partial<RequestItemDTO[]>;
+    itensPedido: RequestItemDTO[];
 }

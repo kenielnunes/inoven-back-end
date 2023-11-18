@@ -11,7 +11,6 @@ export class AuthService {
     ) {}
 
     async validateUser(data: AuthDTO) {
-        console.log('data: ', data);
         const user = await this.prisma.user.findFirst({
             where: {
                 email: data.email,
