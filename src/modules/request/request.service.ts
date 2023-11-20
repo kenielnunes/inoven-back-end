@@ -11,6 +11,7 @@ import {
     paginator,
 } from '../pagination/pagination.service';
 import { ProductService } from '../product/product.service';
+import { FilterRequestDTO } from './dto/filter-request.dto';
 import { RequestDTO } from './dto/request.dto';
 
 @Injectable()
@@ -60,7 +61,9 @@ export class RequestService {
         return request;
     }
 
-    async findAll(filter: any): Promise<PaginatedResult<RequestDTO>> {
+    async findAll(
+        filter: FilterRequestDTO,
+    ): Promise<PaginatedResult<RequestDTO>> {
         const paginate: PaginateFunction = paginator({
             perPage: filter.perPage,
         });
@@ -71,6 +74,14 @@ export class RequestService {
                 itensPedido: {
                     include: {
                         produto: true,
+                    },
+                },
+            },
+            where: {
+                cliente: {
+                    nome: {
+                        contains: filter.cliente,
+                        mode: 'insensitive',
                     },
                 },
             },

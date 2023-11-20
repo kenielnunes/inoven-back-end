@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/PrismaService';
 
-import { PaginationDTO } from '../pagination/dto/pagination.dto';
+import { Prisma } from '@prisma/client';
 import {
     PaginateFunction,
     PaginatedResult,
     paginator,
 } from '../pagination/pagination.service';
 import { ClientDTO } from './dto/client.dto';
+import { FindClientsDTO } from './dto/find-clients.dto';
 
 @Injectable()
 export class ClientService {
@@ -69,22 +70,27 @@ export class ClientService {
 
     async findAll({
         page,
-        limit,
-    }: PaginationDTO): Promise<PaginatedResult<ClientDTO>> {
-        const paginate: PaginateFunction = paginator({ perPage: limit });
+        perPage,
+        nomeCliente,
+    }: FindClientsDTO): Promise<PaginatedResult<ClientDTO>> {
+        const paginate: PaginateFunction = paginator({ perPage: perPage });
 
-        return paginate(
-            this.prisma.client,
-            {
-                include: {
-                    endereco: true,
+        const args: Prisma.ClientFindManyArgs = {
+            include: {
+                endereco: true,
+            },
+            where: {
+                nome: {
+                    contains: nomeCliente,
+                    mode: 'insensitive',
                 },
             },
-            {
-                page: page,
-                perPage: limit,
-            },
-        );
+        };
+
+        return paginate(this.prisma.client, args, {
+            page: page,
+            perPage: perPage,
+        });
     }
 
     async findOne(id: number) {

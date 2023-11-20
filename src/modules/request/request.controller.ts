@@ -13,6 +13,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
+import { FilterRequestDTO } from './dto/filter-request.dto';
 import { RequestDTO } from './dto/request.dto';
 import { RequestService } from './request.service';
 
@@ -49,10 +50,9 @@ export class RequestController {
     }
 
     @Get()
-    async findAll(@Query('') queryParams: RequestDTO, @Res() res: Response) {
+    async findAll(@Query() filter: FilterRequestDTO, @Res() res: Response) {
         try {
-            const filteredRequests =
-                await this.requestService.findAll(queryParams);
+            const filteredRequests = await this.requestService.findAll(filter);
 
             return res.status(HttpStatus.OK).send(filteredRequests);
         } catch (error) {

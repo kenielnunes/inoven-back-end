@@ -13,9 +13,9 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jtw-auth.guard';
-import { PaginationDTO } from '../pagination/dto/pagination.dto';
 import { ClientService } from './client.service';
 import { ClientDTO } from './dto/client.dto';
+import { FindClientsDTO } from './dto/find-clients.dto';
 
 @Controller('clients')
 export class ClientController {
@@ -42,7 +42,7 @@ export class ClientController {
 
     @UseGuards(JwtAuthGuard)
     @Get()
-    async findAll(@Query() pagination: PaginationDTO, @Res() res: Response) {
+    async findAll(@Query() pagination: FindClientsDTO, @Res() res: Response) {
         try {
             const clients = await this.clientService.findAll(pagination);
 
