@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'src/database/PrismaService';
 
 import { Prisma } from '@prisma/client';
@@ -45,32 +45,36 @@ export class ClientService {
     async create(data: ClientDTO) {
         await this.validate(data);
 
-        const client = await this.prisma.client.create({
-            data: {
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                usuarioId: data.usuarioId,
-                nome: data.nome,
-                email: data.email,
-                telefone: data.telefone,
-            },
-        });
+        try {
+            const client = await this.prisma.client.create({
+                data: {
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    usuarioId: data.usuarioId,
+                    nome: data.nome,
+                    email: data.email,
+                    telefone: data.telefone,
+                },
+            });
+            await this.prisma.address.create({
+                data: {
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    bairro: data.endereco.bairro,
+                    cep: data.endereco.cep,
+                    complemento: data.endereco.complemento,
+                    numero: data.endereco.numero,
+                    rua: data.endereco.rua,
+                    clienteId: client.id,
+                    cidade: data.endereco.cidade,
+                },
+            });
 
-        await this.prisma.address.create({
-            data: {
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                bairro: data.endereco.bairro,
-                cep: data.endereco.cep,
-                complemento: data.endereco.complemento,
-                numero: data.endereco.numero,
-                rua: data.endereco.rua,
-                clienteId: client.id,
-                cidade: data.endereco.cidade,
-            },
-        });
-
-        return data;
+            return data;
+        } catch (error) {
+            console.log('err ->', error.message);
+            throw new InternalServerErrorException('Erro interno no servidor!');
+        }
     }
 
     async findAll({

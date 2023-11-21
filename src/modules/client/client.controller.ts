@@ -3,16 +3,17 @@ import {
     Controller,
     Delete,
     Get,
-    Headers,
     HttpStatus,
     Param,
     Post,
     Put,
     Query,
+    Req,
     Res,
     UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { UserRequestDTO } from '../auth/dto/user-request.dto';
 import { JwtAuthGuard } from '../auth/jtw-auth.guard';
 import { ClientService } from './client.service';
 import { ClientDTO } from './dto/client.dto';
@@ -27,9 +28,9 @@ export class ClientController {
     async create(
         @Body() data: ClientDTO,
         @Res() res: Response,
-        @Headers() headers: any,
+        @Req() req: UserRequestDTO,
     ) {
-        console.log(headers);
+        console.log(req.user);
         try {
             const created = await this.clientService.create({
                 ...data,
