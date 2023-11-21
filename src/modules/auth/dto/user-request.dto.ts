@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import { UserDTO } from 'src/modules/user/dto/user.dto';
+import { UserPayload } from './user-payload';
 
 export class UserRequestDTO extends Request {
-    user: UserDTO;
+    user: UserPayload;
 }

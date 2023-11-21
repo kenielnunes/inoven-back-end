@@ -1,13 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { log } from 'console';
 import { PrismaService } from 'src/database/PrismaService';
+import { EnumValidate } from 'src/utils/enum-validate';
 import { StorageService } from '../google/storage/storage.service';
 import {
     PaginateFunction,
     PaginatedResult,
     paginator,
 } from '../pagination/pagination.service';
+import { CreateProductDTO } from './dto/create-product.dto';
 import { GetProductsDTO } from './dto/get-products.dto';
 import { ProductDTO } from './dto/product.dto';
 
@@ -16,10 +18,29 @@ export class ProductService {
     constructor(
         private prisma: PrismaService,
         private storageService: StorageService,
+        private enumValidate: EnumValidate,
     ) {}
 
-    async create(data: ProductDTO): Promise<ProductDTO> {
-        console.log('data ->', data);
+    async validate(data: CreateProductDTO) {
+        if (!data.categoria) {
+            throw new BadRequestException('Categoria é obrigatória');
+        }
+
+        await this.enumValidate.isValidCategory(data.categoria);
+
+        if (!data.descricao) {
+            throw new BadRequestException('O nome do produto é obrigatório');
+        }
+
+        if (data.imagensProduto && !Array.isArray(data.imagensProduto)) {
+            throw new BadRequestException(
+                'Imagens do produto devem ser uma lista',
+            );
+        }
+    }
+
+    async create(data: CreateProductDTO): Promise<ProductDTO> {
+        await this.validate(data);
 
         const productExists = await this.prisma.product.findFirst({
             where: {
@@ -28,12 +49,8 @@ export class ProductService {
         });
 
         if (productExists) {
-            throw new Error('O produto já existe');
+            throw new BadRequestException('O produto já existe');
         }
-
-        // const teste = await axios.post('http://localhost:3000/images', {
-        //     file: data.imagem_produto,
-        // });
 
         const imagens = await Promise.all(
             data.imagensProduto.map(async (imagem) => {
@@ -98,7 +115,7 @@ export class ProductService {
         });
 
         if (!existsProduct) {
-            throw new Error('Produto não encontrado');
+            throw new BadRequestException('Produto não encontrado');
         }
 
         return existsProduct;

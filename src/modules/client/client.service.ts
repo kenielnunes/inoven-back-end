@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+    BadRequestException,
+    Injectable,
+    InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/database/PrismaService';
 
 import { Prisma } from '@prisma/client';
@@ -7,14 +11,15 @@ import {
     PaginatedResult,
     paginator,
 } from '../pagination/pagination.service';
-import { ClientDTO } from './dto/client.dto';
+import { CreateClientDTO } from './dto/create-client.dto';
+import { FilterClientsDTO } from './dto/filter-clients.dto';
 import { FindClientsDTO } from './dto/find-clients.dto';
 
 @Injectable()
 export class ClientService {
     constructor(private prisma: PrismaService) {}
 
-    private async validate(data: ClientDTO) {
+    private async validate(data: CreateClientDTO) {
         if (!data.email) {
             throw new Error('Informe um email');
         }
@@ -34,6 +39,7 @@ export class ClientService {
         const existsClient = await this.prisma.client.findFirst({
             where: {
                 email: data.email,
+                usuarioId: data.usuarioId,
             },
         });
 
@@ -42,7 +48,7 @@ export class ClientService {
         }
     }
 
-    async create(data: ClientDTO) {
+    async create(data: CreateClientDTO) {
         await this.validate(data);
 
         try {
@@ -50,39 +56,35 @@ export class ClientService {
                 data: {
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
-                    usuarioId: data.usuarioId,
                     nome: data.nome,
                     email: data.email,
                     telefone: data.telefone,
-                },
-            });
-            await this.prisma.address.create({
-                data: {
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                    bairro: data.endereco.bairro,
-                    cep: data.endereco.cep,
-                    complemento: data.endereco.complemento,
-                    numero: data.endereco.numero,
-                    rua: data.endereco.rua,
-                    clienteId: client.id,
-                    cidade: data.endereco.cidade,
+                    endereco: {
+                        create: {
+                            ...data.endereco,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString(),
+                        },
+                    },
+                    usuario: {
+                        connect: {
+                            id: data.usuarioId,
+                        },
+                    },
                 },
             });
 
-            return data;
+            return client;
         } catch (error) {
             console.log('err ->', error.message);
             throw new InternalServerErrorException('Erro interno no servidor!');
         }
     }
 
-    async findAll({
-        page,
-        perPage,
-        nomeCliente,
-    }: FindClientsDTO): Promise<PaginatedResult<ClientDTO>> {
-        const paginate: PaginateFunction = paginator({ perPage: perPage });
+    async findAll(
+        data: FilterClientsDTO,
+    ): Promise<PaginatedResult<FindClientsDTO>> {
+        const paginate: PaginateFunction = paginator({ perPage: data.perPage });
 
         const args: Prisma.ClientFindManyArgs = {
             include: {
@@ -90,19 +92,24 @@ export class ClientService {
             },
             where: {
                 nome: {
-                    contains: nomeCliente,
+                    contains: data.nomeCliente,
                     mode: 'insensitive',
                 },
+                usuarioId: data.usuarioId,
             },
         };
 
         return paginate(this.prisma.client, args, {
-            page: page,
-            perPage: perPage,
+            page: data.page,
+            perPage: data.perPage,
         });
     }
 
     async findOne(id: number) {
+        if (!id) {
+            throw new BadRequestException('O Id do cliente é obrigatório!');
+        }
+
         const client = await this.prisma.client.findFirst({
             where: {
                 id,
@@ -110,32 +117,33 @@ export class ClientService {
         });
 
         if (!client) {
-            throw new Error('Cliente não encontrado');
+            throw new BadRequestException('Cliente não encontrado');
         }
 
         return client;
     }
 
-    async update(id: number, data: ClientDTO) {
-        return await this.prisma.client.update({
+    async update(id: number, data: CreateClientDTO) {
+        const existsClient = await this.findOne(Number(id));
+
+        const updated = await this.prisma.client.update({
             where: {
-                id: id,
+                id: existsClient.id,
             },
             data: {
                 ...data,
                 endereco: {
                     update: data.endereco,
                 },
+                updatedAt: new Date().toISOString(),
             },
         });
+
+        return updated;
     }
 
     async remove(id: number) {
-        const existsClient = await this.findOne(id);
-
-        if (!existsClient) {
-            throw new Error('Cliente não encontrado');
-        }
+        const existsClient = await this.findOne(Number(id));
 
         const associatedAddressId = existsClient.id;
 
@@ -165,7 +173,7 @@ export class ClientService {
         // Now, you can safely remove the client
         return await this.prisma.client.delete({
             where: {
-                id: Number(id),
+                id: existsClient.id,
             },
         });
     }

@@ -1,4 +1,9 @@
-import { DeliveryModality, PaymentMethods, Status } from '@prisma/client';
+import {
+    Category,
+    DeliveryModality,
+    PaymentMethods,
+    Status,
+} from '@prisma/client';
 
 export class EnumValidate {
     async execute(value: string, objEnum: object) {
@@ -33,6 +38,14 @@ export class EnumValidate {
 
         if (!isValidDeliveryMethod) {
             throw new Error('Método de entrega inválido');
+        }
+    }
+
+    async isValidCategory(value: string) {
+        const isValidCategory = await this.execute(value, Category);
+
+        if (!isValidCategory) {
+            throw new Error('Categoria inválida');
         }
     }
 }
