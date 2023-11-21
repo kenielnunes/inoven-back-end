@@ -6,7 +6,6 @@ import {
     HttpStatus,
     Param,
     Post,
-    Put,
     Query,
     Res,
     UploadedFiles,
@@ -42,15 +41,13 @@ export class ProductController {
         try {
             const created = await this.productService.create({
                 ...createCategoryDto,
-                categoriaId: Number(createCategoryDto.categoriaId),
-                variacaoId: Number(createCategoryDto.variacaoId),
                 imagensProduto: imagensProduto,
             });
 
             return res.status(HttpStatus.CREATED).send({
                 statusCode: HttpStatus.CREATED,
                 content: created,
-                message: 'Produto criado com sucesso!',
+                message: 'Produto cadastrado com sucesso!',
             });
         } catch (error) {
             return res.status(HttpStatus.BAD_REQUEST).send({
@@ -81,38 +78,38 @@ export class ProductController {
         return this.productService.findOne(+id);
     }
 
-    @Put(':id')
-    async update(
-        @Param('id') id: string,
-        @Body() data: ProductDTO,
-        @Res() res: Response,
-    ) {
-        try {
-            await this.productService.update(+id, data);
+    // @Put(':id')
+    // async update(
+    //     @Param('id') id: string,
+    //     @Body() data: ProductDTO,
+    //     @Res() res: Response,
+    // ) {
+    //     try {
+    //         await this.productService.update(+id, data);
 
-            return res.status(HttpStatus.OK).send({
-                statusCode: HttpStatus.OK,
-                message: 'Produto alterado com sucesso!',
-            });
-        } catch (error) {
-            return res.status(HttpStatus.BAD_REQUEST).send({
-                statusCode: HttpStatus.BAD_REQUEST,
-                message: error.message,
-            });
-        }
-    }
+    //         return res.status(HttpStatus.OK).send({
+    //             statusCode: HttpStatus.OK,
+    //             message: 'Produto alterado com sucesso!',
+    //         });
+    //     } catch (error) {
+    //         return res.status(HttpStatus.BAD_REQUEST).send({
+    //             statusCode: HttpStatus.BAD_REQUEST,
+    //             message: error.message,
+    //         });
+    //     }
+    // }
 
     @Delete(':id')
     async remove(@Param('id') id: string, @Res() res: Response) {
         try {
-            await this.productService.remove(+id);
+            await this.productService.remove(Number(id));
 
             return res.status(HttpStatus.OK).send({
                 message: 'Categoria deletada com sucesso!',
             });
         } catch (error) {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
-                message: 'Erro ao deletar a categoria',
+                message: error.message,
             });
         }
     }

@@ -1,10 +1,11 @@
-import { Unit } from '@prisma/client';
+import { Category, Unit } from '@prisma/client';
 
 export class ProductDTO {
-    id?: number;
+    usuarioId?: number;
+    categoria: Category;
     descricao: string;
-    categoriaId: number;
-    variacaoId: number;
+    createdAt: Date | string;
+    updatedAt: Date | string;
     unidade: Unit;
     imagensProduto?: any;
 }

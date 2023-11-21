@@ -2,6 +2,7 @@ import { DeliveryModality, PaymentMethods, Status } from '@prisma/client';
 import { RequestItemDTO } from 'src/modules/request-item/dto/request-item.dto';
 
 export class RequestDTO {
+    usuarioId: number;
     id?: number;
     clienteId: number;
     dataPedido: Date;

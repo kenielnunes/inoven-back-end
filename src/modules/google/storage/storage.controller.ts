@@ -1,6 +1,5 @@
 import {
     Controller,
-    Delete,
     Get,
     Param,
     Post,
@@ -103,10 +102,5 @@ export class StorageController {
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.storageService.findOne(+id);
-    }
-
-    @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.storageService.remove(+id);
     }
 }

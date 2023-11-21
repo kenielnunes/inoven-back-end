@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    Headers,
     HttpStatus,
     Param,
     Post,
@@ -23,9 +24,16 @@ export class ClientController {
 
     @UseGuards(JwtAuthGuard)
     @Post()
-    async create(@Body() data: ClientDTO, @Res() res: Response) {
+    async create(
+        @Body() data: ClientDTO,
+        @Res() res: Response,
+        @Headers() headers: any,
+    ) {
+        console.log(headers);
         try {
-            const created = await this.clientService.create(data);
+            const created = await this.clientService.create({
+                ...data,
+            });
 
             return res.status(HttpStatus.CREATED).send({
                 statusCode: HttpStatus.CREATED,

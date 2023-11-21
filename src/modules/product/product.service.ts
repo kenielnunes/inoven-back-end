@@ -27,26 +27,6 @@ export class ProductService {
             },
         });
 
-        const categoryExists = await this.prisma.category.findFirst({
-            where: {
-                id: Number(data.categoriaId),
-            },
-        });
-
-        const variationExists = await this.prisma.variation.findFirst({
-            where: {
-                id: Number(data.variacaoId),
-            },
-        });
-
-        if (!variationExists) {
-            throw new Error('Variação não encontrada');
-        }
-
-        if (!categoryExists) {
-            throw new Error('Categoria não encontrada');
-        }
-
         if (productExists) {
             throw new Error('O produto já existe');
         }
@@ -70,8 +50,9 @@ export class ProductService {
         const product = await this.prisma.product.create({
             data: {
                 ...data,
-                categoriaId: Number(data.categoriaId),
-                variacaoId: Number(data.variacaoId),
+                usuarioId: data.usuarioId,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
                 imagensProduto: {
                     create: imagens,
                 },
@@ -93,8 +74,6 @@ export class ProductService {
 
         const args: Prisma.ProductFindManyArgs = {
             include: {
-                categoria: true,
-                variacao: true,
                 imagensProduto: true,
             },
             where: {
@@ -112,36 +91,23 @@ export class ProductService {
     }
 
     async findOne(id: number) {
-        return await this.prisma.product.findFirst({
-            where: {
-                id: id,
-            },
-        });
-    }
-
-    async update(id: number, data: ProductDTO) {
-        const categoryExists = await this.prisma.category.findFirst({
+        const existsProduct = await this.prisma.product.findFirst({
             where: {
                 id: id,
             },
         });
 
-        if (!categoryExists) {
-            throw new Error('Categoria não encontrada');
+        if (!existsProduct) {
+            throw new Error('Produto não encontrado');
         }
 
-        const update = await this.prisma.category.update({
-            where: {
-                id: id,
-            },
-            data: data,
-        });
-
-        return update;
+        return existsProduct;
     }
 
     async remove(id: number) {
-        return await this.prisma.category.delete({
+        await this.findOne(+id);
+
+        return await this.prisma.product.delete({
             where: {
                 id: id,
             },

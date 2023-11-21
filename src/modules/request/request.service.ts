@@ -52,6 +52,8 @@ export class RequestService {
                 itensPedido: {
                     create: data.itensPedido,
                 },
+                createdAt: new Date(),
+                updatedAt: new Date(),
             },
             include: {
                 itensPedido: true,
@@ -73,7 +75,11 @@ export class RequestService {
                 cliente: true,
                 itensPedido: {
                     include: {
-                        produto: true,
+                        produto: {
+                            include: {
+                                imagensProduto: true,
+                            },
+                        },
                     },
                 },
             },

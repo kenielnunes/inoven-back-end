@@ -17,7 +17,11 @@ export class UserService {
         }
 
         const created = await this.prisma.user.create({
-            data: data,
+            data: {
+                ...data,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            },
         });
 
         return created;

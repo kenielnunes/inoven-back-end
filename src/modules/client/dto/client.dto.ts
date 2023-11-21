@@ -6,4 +6,5 @@ export class ClientDTO {
     telefone: string;
     email: string;
     endereco?: Address;
+    usuarioId: number;
 }

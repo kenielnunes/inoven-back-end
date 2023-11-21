@@ -47,6 +47,9 @@ export class ClientService {
 
         const client = await this.prisma.client.create({
             data: {
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                usuarioId: data.usuarioId,
                 nome: data.nome,
                 email: data.email,
                 telefone: data.telefone,
@@ -55,6 +58,8 @@ export class ClientService {
 
         await this.prisma.address.create({
             data: {
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
                 bairro: data.endereco.bairro,
                 cep: data.endereco.cep,
                 complemento: data.endereco.complemento,

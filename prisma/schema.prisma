@@ -37,26 +37,15 @@ enum Unit {
   UN
 }
 
+enum Category {
+  DOCE
+  SALGADO
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
   
-}
-
-model Category {
-  id            Int          @id @default(autoincrement())
-  descricao     String 
-  produtos      Product[]
-
-  @@map("categoria")
-}
-
-model Variation {
-  id            Int          @id @default(autoincrement())
-  descricao     String
-  produtos       Product[]
-
-  @@map("variacao")
 }
 
 model User {
@@ -65,18 +54,28 @@ model User {
   email       String
   senha       String
   nivelAcesso UserType @map("nivel_acesso")
+  createdAt DateTime
+  updatedAt DateTime
   situacao    UserSituation
+  clientes Client[]
+  produtos Product[]
+  pedidos Request[]
+
 
   @@map("usuario")
 }
 
 model Client {
-  id       Int           @id @default(autoincrement())
+  id       Int           @id @default(autoincrement()) 
   nome     String
   telefone String?
   email    String?
+  createdAt DateTime
+  updatedAt DateTime
   endereco  Address?
   pedidos  Request[]
+  usuario User @relation(fields: [usuarioId], references: [id])
+  usuarioId Int @map("usuario_id")
 
   @@map("cliente")
 }
@@ -91,6 +90,8 @@ model Address {
   complemento String?
   cliente     Client @relation(fields: [clienteId], references: [id])
   clienteId   Int @unique @map("cliente_id")
+  createdAt   DateTime
+  updatedAt   DateTime
 
   @@map("endereco")
 }
@@ -100,26 +101,31 @@ model ProductImages {
   path        String
   produto     Product @relation(fields: [produtoId], references: [id])
   produtoId   Int  @map("produto_id")
+ 
 
   @@map("imagem_produto")
 }
 
 model Product {
   id                Int          @id @default(autoincrement())
+  createdAt         DateTime
+  updatedAt         DateTime
   descricao         String
-  categoriaId       Int          @map("categoria_id")      
-  categoria         Category     @relation(fields: [categoriaId], references: [id])
-  variacaoId        Int          @map("variacao_id")   
-  variacao          Variation    @relation(fields: [variacaoId], references: [id])
+  categoria         Category     
   unidade           Unit
   itensPedido       RequestItem[] 
   imagensProduto    ProductImages[]
+  usuario User @relation(fields: [usuarioId], references: [id])
+  usuarioId Int @map("usuario_id")
+  
 
   @@map("produto")
 }
 
 model Request {
   id                Int      @id @default(autoincrement())
+  createdAt         DateTime
+  updatedAt         DateTime
   cliente           Client   @relation(fields: [clienteId], references: [id])
   clienteId         Int @map("cliente_id")
   dataPedido        DateTime @default(now()) @map("data_pedido")
@@ -129,6 +135,8 @@ model Request {
   modalidadeEntrega DeliveryModality @map("modalidade_entrega")
   itensPedido       RequestItem[]
   observacao        String?
+  usuario User @relation(fields: [usuarioId], references: [id])
+  usuarioId Int @map("usuario_id")
 
   @@map("pedido")
 }
