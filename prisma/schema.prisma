@@ -125,7 +125,7 @@ model Product {
 model Request {
   id                Int      @id @default(autoincrement())
   createdAt         DateTime
-  updatedAt         DateTime
+  updatedAt         DateTime @updatedAt
   cliente           Client   @relation(fields: [clienteId], references: [id], onUpdate: Cascade)
   clienteId         Int @map("cliente_id")
   dataPedido        DateTime @default(now()) @map("data_pedido")

@@ -87,7 +87,11 @@ export class ClientService {
         const paginate: PaginateFunction = paginator({ perPage: data.perPage });
 
         const args: Prisma.ClientFindManyArgs = {
-            include: {
+            select: {
+                id: true,
+                nome: true,
+                telefone: true,
+                email: true,
                 endereco: true,
             },
             where: {

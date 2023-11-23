@@ -114,6 +114,9 @@ export class ProductService {
             where: {
                 id: id,
             },
+            include: {
+                imagensProduto: true,
+            },
         });
 
         if (!existsProduct) {
@@ -121,6 +124,33 @@ export class ProductService {
         }
 
         return existsProduct;
+    }
+
+    async update(id: number, data: ProductDTO) {
+        const existsProduct = await this.findOne(Number(id));
+
+        // remove as imagens antigas
+        for (const image of existsProduct.imagensProduto) {
+            log(image);
+            await this.storageService.remove(image.path);
+        }
+
+        const updated = await this.prisma.product.update({
+            where: {
+                id: existsProduct.id,
+            },
+            include: {
+                imagensProduto: true,
+            },
+            data: {
+                ...data,
+                imagensProduto: {
+                    create: data.imagensProduto,
+                },
+            },
+        });
+
+        return updated;
     }
 
     async remove(id: number) {

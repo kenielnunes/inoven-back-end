@@ -1,9 +1,5 @@
 import { Storage } from '@google-cloud/storage';
-import {
-    BadRequestException,
-    Injectable,
-    InternalServerErrorException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import { PrismaService } from 'src/database/PrismaService';
 import { format } from 'url';
@@ -70,25 +66,21 @@ export class StorageService {
     }
 
     async remove(filePath: string) {
-        try {
-            if (!filePath) {
-                throw new BadRequestException('Arquivo não informado');
-            }
-
-            const parts = filePath.split('/');
-
-            const fileName = parts[parts.length - 1];
-
-            const file = bucket.file(`productImages/${fileName}`);
-
-            if (!file) {
-                throw new BadRequestException('Arquivo não encontrado');
-            }
-
-            await file.delete();
-        } catch (error) {
-            throw new InternalServerErrorException('Erro interno server error');
+        if (!filePath) {
+            throw new BadRequestException('Arquivo não informado');
         }
+
+        const parts = filePath.split('/');
+
+        const fileName = parts[parts.length - 1];
+
+        const file = bucket.file(`productImages/${fileName}`);
+
+        if (!file) {
+            throw new BadRequestException('Arquivo não encontrado');
+        }
+
+        await file.delete();
     }
 
     async findOne(id: number) {

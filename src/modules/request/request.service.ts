@@ -135,7 +135,14 @@ export class RequestService {
                 id: id,
             },
             include: {
-                itensPedido: true,
+                itensPedido: {
+                    select: {
+                        id: true,
+                        valorUnitario: true,
+                        observacao: true,
+                        quantidade: true,
+                    },
+                },
             },
         });
     }
@@ -143,24 +150,29 @@ export class RequestService {
     async update(id: number, data: UpdateRequestDTO) {
         const existsRequest = await this.findOne(Number(id));
 
+        for (const item of data.itensPedido) {
+            const existsProduct = await this.productService.findOne(
+                item.produtoId,
+            );
+
+            if (!existsProduct) {
+                throw new Error('Produto não encontrado');
+            }
+        }
+
         const updated = await this.prisma.request.update({
             where: {
                 id: Number(existsRequest.id),
             },
+            include: {
+                itensPedido: true,
+                cliente: true,
+            },
             data: {
                 ...data,
                 itensPedido: {
-                    updateMany: data.itensPedido.map((item) => ({
-                        where: {
-                            id: item.id, // Substitua 'id' pelo campo único correto do seu modelo
-                        },
-                        data: {
-                            quantidade: item.quantidade,
-                            observacao: item.observacao,
-                            valorUnitario: item.valorUnitario,
-                            produtoId: item.produtoId,
-                        },
-                    })),
+                    deleteMany: {},
+                    create: data.itensPedido.map((item) => item),
                 },
                 updatedAt: new Date().toISOString(),
             },

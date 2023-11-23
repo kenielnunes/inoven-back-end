@@ -6,6 +6,7 @@ import {
     HttpStatus,
     Param,
     Post,
+    Put,
     Query,
     Req,
     Res,
@@ -91,26 +92,28 @@ export class ProductController {
         return this.productService.findOne(+id);
     }
 
-    // @Put(':id')
-    // async update(
-    //     @Param('id') id: string,
-    //     @Body() data: ProductDTO,
-    //     @Res() res: Response,
-    // ) {
-    //     try {
-    //         await this.productService.update(+id, data);
+    @Put(':id')
+    async update(
+        @Param('id') id: string,
+        @Body() data: ProductDTO,
+        @Res() res: Response,
+    ) {
+        try {
+            const updated = await this.productService.update(Number(id), data);
 
-    //         return res.status(HttpStatus.OK).send({
-    //             statusCode: HttpStatus.OK,
-    //             message: 'Produto alterado com sucesso!',
-    //         });
-    //     } catch (error) {
-    //         return res.status(HttpStatus.BAD_REQUEST).send({
-    //             statusCode: HttpStatus.BAD_REQUEST,
-    //             message: error.message,
-    //         });
-    //     }
-    // }
+            return res.status(HttpStatus.OK).send({
+                statusCode: HttpStatus.OK,
+                content: updated,
+                message: 'Produto alterado com sucesso!',
+            });
+        } catch (error) {
+            log(error);
+            return res.status(HttpStatus.BAD_REQUEST).send({
+                statusCode: HttpStatus.BAD_REQUEST,
+                message: error.message,
+            });
+        }
+    }
 
     @Delete(':id')
     async remove(@Param('id') id: string, @Res() res: Response) {
