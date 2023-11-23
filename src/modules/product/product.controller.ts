@@ -70,8 +70,12 @@ export class ProductController {
     async findAll(
         @Res() res: Response,
         @Query() paginationDto: GetProductsDTO,
+        @Req() req: UserRequestDTO,
     ) {
-        const products = await this.productService.findAll(paginationDto);
+        const products = await this.productService.findAll(
+            req.user.id,
+            paginationDto,
+        );
 
         // const paginatedResult = this.paginationService.paginate(
         //     products,
@@ -114,7 +118,7 @@ export class ProductController {
             await this.productService.remove(Number(id));
 
             return res.status(HttpStatus.OK).send({
-                message: 'Categoria deletada com sucesso!',
+                message: 'Produto removido com sucesso!',
             });
         } catch (error) {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({

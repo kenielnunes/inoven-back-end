@@ -10,4 +10,5 @@ export class GetProductsDTO {
     imagensProduto?: any;
     page: string;
     perPage: string;
+    usuarioId: number;
 }

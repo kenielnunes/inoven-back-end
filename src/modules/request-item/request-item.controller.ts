@@ -1,15 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
-import { RequestItemDTO } from './dto/request-item.dto';
+import { Controller, Delete, Get, Param } from '@nestjs/common';
 import { RequestItemService } from './request-item.service';
 
 @Controller('request-item')
 export class RequestItemController {
     constructor(private readonly requestItemService: RequestItemService) {}
-
-    @Post()
-    async create(@Body() data: RequestItemDTO) {
-        return await this.requestItemService.create(data);
-    }
 
     @Get()
     findAll() {

@@ -1,5 +1,7 @@
 import {
+    Body,
     Controller,
+    Delete,
     Get,
     Param,
     Post,
@@ -10,6 +12,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
+import { DeleteFileDTO } from './dto/delete-file.dto';
 import { StorageService } from './storage.service';
 
 @Controller('images')
@@ -29,7 +32,7 @@ export class StorageController {
     constructor(private readonly storageService: StorageService) {}
 
     @Post()
-    async execute(
+    async create(
         // @Body() file: Express.Multer.File,
         @UploadedFile() file: Express.Multer.File,
         @Res() res: Response,
@@ -48,6 +51,21 @@ export class StorageController {
             return res.status(500).send({
                 message: `Uploaded the file successfully, but public access is denied!`,
                 url: error.message,
+            });
+        }
+    }
+
+    @Delete()
+    async remove(@Body() data: DeleteFileDTO, @Res() res: Response) {
+        try {
+            await this.storageService.remove(data.filePath);
+
+            res.status(200).send({
+                message: 'Imagem removida com sucesso!',
+            });
+        } catch (error) {
+            return res.status(error.status).send({
+                message: error.message,
             });
         }
     }
@@ -93,11 +111,6 @@ export class StorageController {
     //     //     })
     //     //     .end(buffer);
     // }
-
-    @Get()
-    findAll() {
-        return this.storageService.findAll();
-    }
 
     @Get(':id')
     findOne(@Param('id') id: string) {

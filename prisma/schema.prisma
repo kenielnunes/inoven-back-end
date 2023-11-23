@@ -99,7 +99,7 @@ model Address {
 model ProductImages {
   id          Int    @id @default(autoincrement())
   path        String
-  produto     Product @relation(fields: [produtoId], references: [id])
+  produto     Product @relation(fields: [produtoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   produtoId   Int  @map("produto_id")
  
 
@@ -126,7 +126,7 @@ model Request {
   id                Int      @id @default(autoincrement())
   createdAt         DateTime
   updatedAt         DateTime
-  cliente           Client   @relation(fields: [clienteId], references: [id])
+  cliente           Client   @relation(fields: [clienteId], references: [id], onUpdate: Cascade)
   clienteId         Int @map("cliente_id")
   dataPedido        DateTime @default(now()) @map("data_pedido")
   dataEntrega       DateTime @map("data_entrega")
@@ -143,9 +143,9 @@ model Request {
 
 model RequestItem {
   id            Int         @id @default(autoincrement())
-  pedido        Request     @relation(fields: [pedidoId], references: [id])
+  pedido        Request     @relation(fields: [pedidoId], references: [id] )
   pedidoId      Int   @map("pedido_id")
-  produto       Product     @relation(fields: [produtoId], references: [id])
+  produto       Product     @relation(fields: [produtoId], references: [id] )
   produtoId     Int  @map("produto_id")
   quantidade    Int
   observacao    String?

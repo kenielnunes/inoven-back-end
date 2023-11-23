@@ -83,6 +83,7 @@ export class ProductService {
     }
 
     async findAll(
+        userId: number,
         filter: GetProductsDTO,
     ): Promise<PaginatedResult<ProductDTO>> {
         const paginate: PaginateFunction = paginator({
@@ -98,6 +99,7 @@ export class ProductService {
                     contains: filter.descricao,
                     mode: 'insensitive',
                 },
+                usuarioId: userId,
             },
         };
 
@@ -122,7 +124,7 @@ export class ProductService {
     }
 
     async remove(id: number) {
-        await this.findOne(+id);
+        await this.findOne(Number(id));
 
         return await this.prisma.product.delete({
             where: {

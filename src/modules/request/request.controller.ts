@@ -6,17 +6,24 @@ import {
     HttpStatus,
     Param,
     Post,
+    Put,
     Query,
+    Req,
     Res,
+    UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
+import { UserRequestDTO } from '../auth/dto/user-request.dto';
+import { JwtAuthGuard } from '../auth/jtw-auth.guard';
 import { FilterRequestDTO } from './dto/filter-request.dto';
 import { RequestDTO } from './dto/request.dto';
+import { UpdateRequestDTO } from './dto/update-request.dto';
 import { RequestService } from './request.service';
 
+@UseGuards(JwtAuthGuard)
 @UseInterceptors(
     FileInterceptor('file', {
         storage: diskStorage({
@@ -33,17 +40,24 @@ export class RequestController {
     constructor(private readonly requestService: RequestService) {}
 
     @Post()
-    async create(@Body() data: RequestDTO, @Res() res: Response) {
+    async create(
+        @Body() data: RequestDTO,
+        @Res() res: Response,
+        @Req() req: UserRequestDTO,
+    ) {
         try {
-            const created = await this.requestService.create(data);
+            const created = await this.requestService.create({
+                ...data,
+                usuarioId: req.user.id,
+            });
             return res.status(HttpStatus.CREATED).send({
                 statusCode: HttpStatus.CREATED,
                 content: created,
                 message: 'Pedido criado com sucesso!',
             });
         } catch (error) {
-            return res.status(HttpStatus.BAD_REQUEST).send({
-                statusCode: HttpStatus.BAD_REQUEST,
+            return res.status(error.status).send({
+                statusCode: error.status,
                 message: error.message,
             });
         }
@@ -68,13 +82,13 @@ export class RequestController {
         return this.requestService.findOne(+id);
     }
 
-    // @Patch(':id')
-    // update(
-    //     @Param('id') id: string,
-    //     @Body() updateRequestDto: UpdateRequestDto,
-    // ) {
-    //     return this.requestService.update(+id, updateRequestDto);
-    // }
+    @Put(':id')
+    async update(
+        @Param('id') id: string,
+        @Body() updateRequestDto: UpdateRequestDTO,
+    ) {
+        return await this.requestService.update(Number(id), updateRequestDto);
+    }
 
     @Delete(':id')
     remove(@Param('id') id: string) {
