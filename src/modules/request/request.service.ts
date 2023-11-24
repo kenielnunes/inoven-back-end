@@ -13,6 +13,7 @@ import {
 } from '../pagination/pagination.service';
 import { ProductService } from '../product/product.service';
 import { FilterRequestDTO } from './dto/filter-request.dto';
+import { FindRequestDTO } from './dto/find-request.dto';
 import { RequestDTO } from './dto/request.dto';
 import { UpdateRequestDTO } from './dto/update-request.dto';
 
@@ -76,10 +77,10 @@ export class RequestService {
     }
 
     async findAll(
-        filter: FilterRequestDTO,
-    ): Promise<PaginatedResult<RequestDTO>> {
+        filter?: FilterRequestDTO,
+    ): Promise<PaginatedResult<FindRequestDTO>> {
         const paginate: PaginateFunction = paginator({
-            perPage: filter.perPage,
+            perPage: filter?.perPage,
         });
 
         const args: Prisma.RequestFindManyArgs = {
@@ -98,7 +99,7 @@ export class RequestService {
             where: {
                 cliente: {
                     nome: {
-                        contains: filter.cliente,
+                        contains: filter?.cliente,
                         mode: 'insensitive',
                     },
                 },
@@ -106,12 +107,12 @@ export class RequestService {
         };
 
         const paginatedResult = await paginate(this.prisma.request, args, {
-            page: filter.page,
-            perPage: filter.perPage,
+            page: filter?.page,
+            perPage: filter?.perPage,
         });
 
         const formattedDTO = paginatedResult.content.map(
-            (request: RequestDTO) => {
+            (request: FindRequestDTO) => {
                 const totalValue = request.itensPedido.reduce(
                     (acc, item) => acc + item.valorUnitario,
                     0,

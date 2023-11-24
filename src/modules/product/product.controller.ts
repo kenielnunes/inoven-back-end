@@ -18,6 +18,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { log } from 'console';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
+import { stringToSlug } from 'src/utils/string-to-slug';
 import { UserRequestDTO } from '../auth/dto/user-request.dto';
 import { JwtAuthGuard } from '../auth/jtw-auth.guard';
 import { GetProductsDTO } from './dto/get-products.dto';
@@ -31,7 +32,7 @@ import { ProductService } from './product.service';
         storage: diskStorage({
             destination: './src/modules/google/storage/assets/uploads',
             filename: (req, file, cb) => {
-                cb(null, `${file.originalname}`);
+                cb(null, `${stringToSlug(file.originalname)}`);
             },
         }),
     }),
@@ -78,12 +79,6 @@ export class ProductController {
             paginationDto,
         );
 
-        // const paginatedResult = this.paginationService.paginate(
-        //     products,
-        //     page,
-        //     limit,
-        // );
-
         return res.status(HttpStatus.CREATED).send(products);
     }
 
@@ -94,12 +89,16 @@ export class ProductController {
 
     @Put(':id')
     async update(
+        @UploadedFiles() imagensProduto: Array<Express.Multer.File>,
         @Param('id') id: string,
         @Body() data: ProductDTO,
         @Res() res: Response,
     ) {
         try {
-            const updated = await this.productService.update(Number(id), data);
+            const updated = await this.productService.update(Number(id), {
+                ...data,
+                imagensProduto: imagensProduto,
+            });
 
             return res.status(HttpStatus.OK).send({
                 statusCode: HttpStatus.OK,

@@ -12,6 +12,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
+import { stringToSlug } from 'src/utils/string-to-slug';
 import { DeleteFileDTO } from './dto/delete-file.dto';
 import { StorageService } from './storage.service';
 
@@ -23,7 +24,7 @@ import { StorageService } from './storage.service';
             filename: (req, file, cb) => {
                 console.log(file);
                 //Calling the callback passing the random name generated with the original extension name
-                cb(null, `${file.originalname}`);
+                cb(null, `${stringToSlug(file.originalname)}`);
             },
         }),
     }),
@@ -40,11 +41,13 @@ export class StorageController {
         try {
             const imagem = await this.storageService.upload(
                 file,
-                'productImages',
+                'productsImages',
             );
 
             res.status(200).send({
-                message: 'Uploaded the file successfully: ' + file.originalname,
+                message:
+                    'Uploaded the file successfully: ' +
+                    stringToSlug(file.originalname),
                 url: imagem,
             });
         } catch (error) {
@@ -58,13 +61,13 @@ export class StorageController {
     @Delete()
     async remove(@Body() data: DeleteFileDTO, @Res() res: Response) {
         try {
-            await this.storageService.remove(data.filePath);
+            await this.storageService.remove(data.filePath, 'productsImages');
 
             res.status(200).send({
                 message: 'Imagem removida com sucesso!',
             });
         } catch (error) {
-            return res.status(error.status).send({
+            return res.status(500).send({
                 message: error.message,
             });
         }

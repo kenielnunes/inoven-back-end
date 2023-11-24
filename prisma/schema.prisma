@@ -145,7 +145,7 @@ model RequestItem {
   id            Int         @id @default(autoincrement())
   pedido        Request     @relation(fields: [pedidoId], references: [id] )
   pedidoId      Int   @map("pedido_id")
-  produto       Product     @relation(fields: [produtoId], references: [id] )
+  produto       Product     @relation(fields: [produtoId], references: [id] ,onDelete: Cascade, onUpdate: Cascade)
   produtoId     Int  @map("produto_id")
   quantidade    Int
   observacao    String?

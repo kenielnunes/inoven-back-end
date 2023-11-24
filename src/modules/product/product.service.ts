@@ -56,7 +56,7 @@ export class ProductService {
             data.imagensProduto.map(async (imagem) => {
                 const imagemPath = await this.storageService.upload(
                     imagem,
-                    'productImages',
+                    'productsImages',
                 );
                 return { path: imagemPath };
             }),
@@ -129,11 +129,23 @@ export class ProductService {
     async update(id: number, data: ProductDTO) {
         const existsProduct = await this.findOne(Number(id));
 
+        log(existsProduct.imagensProduto);
+
         // remove as imagens antigas
         for (const image of existsProduct.imagensProduto) {
             log(image);
-            await this.storageService.remove(image.path);
+            await this.storageService.remove(image.path, 'productsImages');
         }
+
+        const imagens = await Promise.all(
+            data.imagensProduto.map(async (imagem) => {
+                const imagemPath = await this.storageService.upload(
+                    imagem,
+                    'productsImages',
+                );
+                return { path: imagemPath };
+            }),
+        );
 
         const updated = await this.prisma.product.update({
             where: {
@@ -145,7 +157,8 @@ export class ProductService {
             data: {
                 ...data,
                 imagensProduto: {
-                    create: data.imagensProduto,
+                    deleteMany: {},
+                    create: imagens,
                 },
             },
         });
