@@ -1,4 +1,4 @@
-import { Controller, Header, HttpStatus, Post, Res } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { ReportsService } from './reports.service';
 
@@ -6,13 +6,13 @@ import { ReportsService } from './reports.service';
 export class ReportsController {
     constructor(private readonly reportsService: ReportsService) {}
 
-    @Post('requests')
-    @Header('Content-type', 'application/pdf')
+    @Get('requests')
+    // @Header('Content-type', 'application/pdf')
     async findAll(@Res() res: Response) {
         try {
-            const pdfBuffer = await this.reportsService.execute();
+            await this.reportsService.execute();
 
-            res.send(pdfBuffer);
+            res.send('relatorio ok');
         } catch (error) {
             console.log('error.message -> ', error.message);
             return res.status(HttpStatus.BAD_REQUEST).send({
