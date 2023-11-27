@@ -1,8 +1,113 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int           @id @default(autoincrement())
+  nome        String
+  email       String
+  senha       String
+  situacao    UserSituation
+  nivelAcesso UserType      @map("nivel_acesso")
+  createdAt   DateTime
+  updatedAt   DateTime
+  clientes    Client[]
+  pedidos     Request[]
+  produtos    Product[]
+
+  @@map("usuario")
+}
+
+model Client {
+  id        Int       @id @default(autoincrement())
+  nome      String
+  telefone  String?
+  email     String?
+  createdAt DateTime
+  updatedAt DateTime
+  usuarioId Int       @map("usuario_id")
+  usuario   User      @relation(fields: [usuarioId], references: [id])
+  endereco  Address?
+  pedidos   Request[]
+
+  @@map("cliente")
+}
+
+model Address {
+  id          Int      @id @default(autoincrement())
+  cep         String
+  bairro      String
+  rua         String
+  numero      String
+  complemento String?
+  clienteId   Int      @unique @map("cliente_id")
+  cidade      String
+  createdAt   DateTime
+  updatedAt   DateTime
+  cliente     Client   @relation(fields: [clienteId], references: [id])
+
+  @@map("endereco")
+}
+
+model ProductImages {
+  id        Int     @id @default(autoincrement())
+  path      String
+  produtoId Int     @map("produto_id")
+  produto   Product @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@map("imagem_produto")
+}
+
+model Product {
+  id             Int             @id @default(autoincrement())
+  descricao      String
+  unidade        Unit
+  createdAt      DateTime
+  updatedAt      DateTime
+  usuarioId      Int             @map("usuario_id")
+  categoria      Category
+  imagensProduto ProductImages[]
+  itensPedido    RequestItem[]
+  usuario        User            @relation(fields: [usuarioId], references: [id])
+
+  @@map("produto")
+}
+
+model Request {
+  id                Int              @id @default(autoincrement())
+  status            Status
+  clienteId         Int              @map("cliente_id")
+  dataEntrega       DateTime         @map("data_entrega")
+  dataPedido        DateTime         @default(now()) @map("data_pedido")
+  formaPagamento    PaymentMethods   @map("forma_pagamento")
+  modalidadeEntrega DeliveryModality @map("modalidade_entrega")
+  observacao        String?
+  createdAt         DateTime
+  updatedAt         DateTime         @updatedAt
+  usuarioId         Int              @map("usuario_id")
+  itensPedido       RequestItem[]
+  cliente           Client           @relation(fields: [clienteId], references: [id])
+  usuario           User             @relation(fields: [usuarioId], references: [id])
+
+  @@map("pedido")
+}
+
+model RequestItem {
+  id            Int     @id @default(autoincrement())
+  quantidade    Int
+  observacao    String?
+  pedidoId      Int     @map("pedido_id")
+  produtoId     Int     @map("produto_id")
+  valorUnitario Float   @map("valor_unitario")
+  pedido        Request @relation(fields: [pedidoId], references: [id])
+  produto       Product @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@map("item_pedido")
 }
 
 enum UserType {
@@ -22,9 +127,10 @@ enum Status {
 }
 
 enum PaymentMethods {
-  CARTAO_DE_CREDITO
-  BOLETO
+  CREDITO
+  DEBITO
   PIX
+  DINHEIRO
 }
 
 enum DeliveryModality {
@@ -40,116 +146,4 @@ enum Unit {
 enum Category {
   DOCE
   SALGADO
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  
-}
-
-model User {
-  id          Int           @id @default(autoincrement())
-  nome        String
-  email       String
-  senha       String
-  nivelAcesso UserType @map("nivel_acesso")
-  createdAt DateTime
-  updatedAt DateTime
-  situacao    UserSituation
-  clientes Client[]
-  produtos Product[]
-  pedidos Request[]
-
-
-  @@map("usuario")
-}
-
-model Client {
-  id       Int           @id @default(autoincrement()) 
-  nome     String
-  telefone String?
-  email    String?
-  createdAt DateTime
-  updatedAt DateTime
-  endereco  Address?
-  pedidos  Request[]
-  usuario User @relation(fields: [usuarioId], references: [id])
-  usuarioId Int @map("usuario_id")
-
-  @@map("cliente")
-}
-
-model Address {
-  id          Int    @id @default(autoincrement())
-  cep         String
-  cidade      String
-  bairro      String
-  rua         String
-  numero      String
-  complemento String?
-  cliente     Client @relation(fields: [clienteId], references: [id])
-  clienteId   Int @unique @map("cliente_id")
-  createdAt   DateTime
-  updatedAt   DateTime
-
-  @@map("endereco")
-}
-
-model ProductImages {
-  id          Int    @id @default(autoincrement())
-  path        String
-  produto     Product @relation(fields: [produtoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  produtoId   Int  @map("produto_id")
- 
-
-  @@map("imagem_produto")
-}
-
-model Product {
-  id                Int          @id @default(autoincrement())
-  createdAt         DateTime
-  updatedAt         DateTime
-  descricao         String
-  categoria         Category     
-  unidade           Unit
-  itensPedido       RequestItem[] 
-  imagensProduto    ProductImages[]
-  usuario User @relation(fields: [usuarioId], references: [id])
-  usuarioId Int @map("usuario_id")
-  
-
-  @@map("produto")
-}
-
-model Request {
-  id                Int      @id @default(autoincrement())
-  createdAt         DateTime
-  updatedAt         DateTime @updatedAt
-  cliente           Client   @relation(fields: [clienteId], references: [id], onUpdate: Cascade)
-  clienteId         Int @map("cliente_id")
-  dataPedido        DateTime @default(now()) @map("data_pedido")
-  dataEntrega       DateTime @map("data_entrega")
-  status            Status  
-  formaPagamento    PaymentMethods @map("forma_pagamento")
-  modalidadeEntrega DeliveryModality @map("modalidade_entrega")
-  itensPedido       RequestItem[]
-  observacao        String?
-  usuario User @relation(fields: [usuarioId], references: [id])
-  usuarioId Int @map("usuario_id")
-
-  @@map("pedido")
-}
-
-model RequestItem {
-  id            Int         @id @default(autoincrement())
-  pedido        Request     @relation(fields: [pedidoId], references: [id] )
-  pedidoId      Int   @map("pedido_id")
-  produto       Product     @relation(fields: [produtoId], references: [id] ,onDelete: Cascade, onUpdate: Cascade)
-  produtoId     Int  @map("produto_id")
-  quantidade    Int
-  observacao    String?
-  valorUnitario Float @map("valor_unitario")
-
-  @@map("item_pedido")
 }

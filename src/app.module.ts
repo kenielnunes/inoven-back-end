@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from './modules/auth/auth.module';
 import { ClientModule } from './modules/client/client.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { StorageModule } from './modules/google/storage/storage.module';
 import { StorageService } from './modules/google/storage/storage.service';
 import { PaginationModule } from './modules/pagination/pagination.module';
@@ -28,6 +29,7 @@ import { UserModule } from './modules/user/user.module';
         ProductImagesModule,
         ProductImagesModule,
         ReportsModule,
+        DashboardModule,
     ],
     controllers: [ProductController, ProductImagesController],
     providers: [ProductService, StorageService, ProductImagesService],

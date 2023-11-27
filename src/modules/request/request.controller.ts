@@ -70,7 +70,7 @@ export class RequestController {
 
             return res.status(HttpStatus.OK).send(filteredRequests);
         } catch (error) {
-            res.status(HttpStatus.BAD_REQUEST).send({
+            return res.status(HttpStatus.BAD_REQUEST).send({
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: error.message,
             });

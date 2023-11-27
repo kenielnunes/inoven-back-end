@@ -1,6 +1,6 @@
 // pagination.dto.ts
 
 export class PaginationDTO {
-    page: number;
-    perPage: number;
+    page?: number;
+    perPage?: number;
 }

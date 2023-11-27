@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import {
     Category,
     DeliveryModality,
@@ -18,7 +19,7 @@ export class EnumValidate {
         const isValidPaymentMethod = await this.execute(value, PaymentMethods);
 
         if (!isValidPaymentMethod) {
-            throw new Error('Método de pagamento inválido');
+            throw new BadRequestException('Método de pagamento inválido');
         }
     }
 
@@ -26,7 +27,7 @@ export class EnumValidate {
         const isValidStatus = await this.execute(value, Status);
 
         if (!isValidStatus) {
-            throw new Error('Status inválido');
+            throw new BadRequestException('Status inválido');
         }
     }
 
@@ -37,7 +38,7 @@ export class EnumValidate {
         );
 
         if (!isValidDeliveryMethod) {
-            throw new Error('Método de entrega inválido');
+            throw new BadRequestException('Método de entrega inválido');
         }
     }
 
@@ -45,7 +46,7 @@ export class EnumValidate {
         const isValidCategory = await this.execute(value, Category);
 
         if (!isValidCategory) {
-            throw new Error('Categoria inválida');
+            throw new BadRequestException('Categoria inválida');
         }
     }
 }

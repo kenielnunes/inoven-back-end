@@ -1,6 +1,7 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { log } from 'console';
+import moment from 'moment-timezone';
 import { PrismaService } from 'src/database/PrismaService';
 import { EnumValidate } from 'src/utils/enum-validate';
 import { formatDateToDateTime } from 'src/utils/format-date';
@@ -28,52 +29,45 @@ export class RequestService {
     ) {}
 
     async create(data: RequestDTO): Promise<RequestDTO> {
-        try {
-            await this.clientService.findOne(data.clienteId); //verifica se o cliente existe
+        await this.clientService.findOne(data.clienteId); //verifica se o cliente existe
 
-            await this.enumValidate.isValidPaymentMethod(data.formaPagamento); //verifica se o método de pagamento é válido
+        await this.enumValidate.isValidPaymentMethod(data.formaPagamento); //verifica se o método de pagamento é válido
 
-            await this.enumValidate.isValidStatus(data.status); // verifica se o status é valido
+        await this.enumValidate.isValidStatus(data.status); // verifica se o status é valido
 
-            await this.enumValidate.isValidDeliveryModality(
-                data.modalidadeEntrega,
-            ); // verifica se a modalidade de entrega é valida
+        await this.enumValidate.isValidDeliveryModality(data.modalidadeEntrega); // verifica se a modalidade de entrega é valida
 
-            for (const item of data.itensPedido) {
-                const existsProduct = await this.productService.findOne(
-                    item.produtoId,
-                );
+        for (const item of data.itensPedido) {
+            const existsProduct = await this.productService.findOne(
+                item.produtoId,
+            );
 
-                if (!existsProduct) {
-                    throw new Error('Produto não encontrado');
-                }
+            if (!existsProduct) {
+                throw new BadRequestException('Produto não encontrado');
             }
-
-            // Cria o pedido
-            const request = await this.prisma.request.create({
-                data: {
-                    ...data,
-                    dataPedido: formatDateToDateTime(data.dataPedido),
-                    dataEntrega: formatDateToDateTime(data.dataEntrega),
-                    itensPedido: {
-                        create: data.itensPedido,
-                    },
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                    clienteId: data.clienteId,
-                    usuarioId: data.usuarioId,
-                },
-                include: {
-                    itensPedido: true,
-                    cliente: true,
-                },
-            });
-
-            return request;
-        } catch (error) {
-            log(error);
-            throw new InternalServerErrorException('Erro interno no servidor');
         }
+
+        // Cria o pedido
+        const request = await this.prisma.request.create({
+            data: {
+                ...data,
+                dataPedido: formatDateToDateTime(data.dataPedido),
+                dataEntrega: formatDateToDateTime(data.dataEntrega),
+                itensPedido: {
+                    create: data.itensPedido,
+                },
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                clienteId: data.clienteId,
+                usuarioId: data.usuarioId,
+            },
+            include: {
+                itensPedido: true,
+                cliente: true,
+            },
+        });
+
+        return request;
     }
 
     async findAll(
@@ -82,6 +76,28 @@ export class RequestService {
         const paginate: PaginateFunction = paginator({
             perPage: filter?.perPage,
         });
+
+        if (filter?.status) {
+            await this.enumValidate.isValidStatus(filter?.status);
+        }
+
+        if (filter?.formaPagamento) {
+            await this.enumValidate.isValidPaymentMethod(
+                filter?.formaPagamento,
+            );
+        }
+
+        const adjustedStartDate = moment(filter?.dataInicio)
+            .subtract(3, 'hours')
+            .toISOString();
+
+        const adjustedEndDate = moment(filter?.dataFim)
+            .subtract(3, 'hours')
+            .toISOString();
+
+        log('data inicio ->', adjustedStartDate);
+
+        log('data fim ->', adjustedEndDate);
 
         const args: Prisma.RequestFindManyArgs = {
             include: {
@@ -105,6 +121,38 @@ export class RequestService {
                 },
             },
         };
+
+        if (filter?.clienteId) {
+            args.where.clienteId = {
+                equals: Number(filter?.clienteId),
+            };
+        }
+
+        if (filter?.status) {
+            args.where.status = {
+                equals: filter?.status,
+            };
+        }
+
+        if (filter?.dataInicio) {
+            args.where.dataPedido = {
+                gte: adjustedStartDate,
+            };
+        }
+
+        if (filter?.dataFim) {
+            args.where.dataPedido = {
+                lte: adjustedEndDate,
+            };
+        }
+
+        if (filter?.formaPagamento) {
+            args.where.formaPagamento = {
+                equals: filter?.formaPagamento,
+            };
+        }
+
+        log(args.where);
 
         const paginatedResult = await paginate(this.prisma.request, args, {
             page: filter?.page,
