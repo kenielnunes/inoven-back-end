@@ -64,9 +64,16 @@ export class RequestController {
     }
 
     @Get()
-    async findAll(@Query() filter: FilterRequestDTO, @Res() res: Response) {
+    async findAll(
+        @Query() filter: FilterRequestDTO,
+        @Res() res: Response,
+        @Req() req: UserRequestDTO,
+    ) {
         try {
-            const filteredRequests = await this.requestService.findAll(filter);
+            const filteredRequests = await this.requestService.findAll(
+                req.user.id,
+                filter,
+            );
 
             return res.status(HttpStatus.OK).send(filteredRequests);
         } catch (error) {

@@ -76,7 +76,6 @@ export class ClientService {
 
             return client;
         } catch (error) {
-            console.log('err ->', error.message);
             throw new InternalServerErrorException('Erro interno no servidor!');
         }
     }

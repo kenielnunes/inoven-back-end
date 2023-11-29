@@ -22,7 +22,6 @@ import { StorageService } from './storage.service';
         storage: diskStorage({
             destination: './src/modules/google/storage/assets/uploads',
             filename: (req, file, cb) => {
-                console.log(file);
                 //Calling the callback passing the random name generated with the original extension name
                 cb(null, `${stringToSlug(file.originalname)}`);
             },

@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { Status } from '@prisma/client';
+import { log } from 'console';
 import moment from 'moment';
-import { PrismaService } from 'src/database/PrismaService';
 import { RequestService } from '../request/request.service';
 
 @Injectable()
 export class DashboardService {
-    constructor(
-        private prisma: PrismaService,
-        private requestService: RequestService,
-    ) {}
-    async getRevenuePerYear() {
+    constructor(private requestService: RequestService) {}
+    async getRevenueForCurrentYear(usuarioId: number) {
         // Cria um objeto para mapear os meses para seus equivalentes numéricos
         const monthToNumber = {
             janeiro: 1,
@@ -26,12 +24,19 @@ export class DashboardService {
             dezembro: 12,
         };
 
-        const paidRequests = await this.requestService.findAll({
-            status: 'FINALIZADO',
+        const today = moment();
+        const startOfYear = today.clone().startOf('year');
+        const endOfYear = today.clone().endOf('year');
+
+        const paidRequests = await this.requestService.findAll(usuarioId, {
+            status: Status.FINALIZADO,
+            dataInicio: startOfYear.toISOString(),
+            dataFim: endOfYear.toISOString(),
         });
+
         const monthsTotals = {};
 
-        for (const request of paidRequests.content) {
+        for await (const request of paidRequests.content) {
             const month = moment(request.dataEntrega)
                 .locale('pt-br')
                 .format('MMMM');
@@ -60,8 +65,85 @@ export class DashboardService {
         );
 
         return {
-            meses: sortedMonths,
-            valores: sortedTotalValues,
+            months: sortedMonths,
+            values: sortedTotalValues,
+        };
+    }
+
+    async getAllRevenues(usuarioId: number) {
+        const requests = await this.requestService.findAll(usuarioId, {
+            status: Status.FINALIZADO,
+            perPage: 9999999999999,
+        });
+
+        log(requests);
+
+        const totalValue = requests.content.reduce(
+            (acc, request) => acc + request.valorTotal,
+            0,
+        );
+
+        return Number(totalValue.toFixed(2));
+    }
+
+    async getRevenueForCurrentMonth(usuarioId: number): Promise<{
+        revenue: number;
+        variation: number;
+    }> {
+        const today = moment();
+        const firstDayOfMonth = today.clone().startOf('month');
+        const lastDayOfMonth = today.clone().endOf('month');
+
+        const filter = {
+            dataInicio: firstDayOfMonth.toISOString(),
+            dataFim: lastDayOfMonth.toISOString(),
+            status: Status.FINALIZADO,
+        };
+
+        const requests = await this.requestService.findAll(usuarioId, filter);
+
+        const totalValue = requests.content.reduce(
+            (acc, request) => acc + request.valorTotal,
+            0,
+        );
+
+        const currentMonthRevenue = Number(totalValue.toFixed(2));
+
+        // Obtém o valor do mês anterior
+        const previousMonthEnd = moment().subtract(1, 'months').endOf('month');
+
+        const previousMonthStart = previousMonthEnd.clone().startOf('month');
+        const previousMonthFilter = {
+            dataInicio: previousMonthStart.toISOString(),
+            dataFim: previousMonthEnd.toISOString(),
+            status: Status.FINALIZADO,
+        };
+
+        const previousMonthRevenue = await this.requestService.findAll(
+            usuarioId,
+            previousMonthFilter,
+        );
+
+        log('previousMonthRevenue', previousMonthRevenue);
+
+        const previousMonthTotalValue = previousMonthRevenue.content.reduce(
+            (acc, request) => acc + request.valorTotal,
+            0,
+        );
+
+        // Calcula a variação percentual
+        const variation =
+            currentMonthRevenue !== 0
+                ? ((currentMonthRevenue - previousMonthTotalValue) /
+                      currentMonthRevenue) *
+                  100
+                : 0;
+
+        const roundedVariation = Number(variation.toFixed(2));
+
+        return {
+            revenue: currentMonthRevenue,
+            variation: roundedVariation,
         };
     }
 }

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { log } from 'console';
 import { PrismaService } from 'src/database/PrismaService';
 import { AuthDTO } from './dto/auth.dto';
 
@@ -33,8 +32,6 @@ export class AuthService {
 
     async login(data: AuthDTO) {
         const userExists = await this.validateUser(data);
-
-        log(userExists);
 
         const payload = {
             sub: userExists.id,

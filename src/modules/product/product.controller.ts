@@ -15,7 +15,6 @@ import {
     UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { log } from 'console';
 import { Response } from 'express';
 import { diskStorage } from 'multer';
 import { stringToSlug } from 'src/utils/string-to-slug';
@@ -60,7 +59,6 @@ export class ProductController {
                 message: 'Produto cadastrado com sucesso!',
             });
         } catch (error) {
-            log(error);
             return res.status(error.status).send({
                 statusCode: error.status,
                 message: error.message,
@@ -106,7 +104,6 @@ export class ProductController {
                 message: 'Produto alterado com sucesso!',
             });
         } catch (error) {
-            log(error);
             return res.status(HttpStatus.BAD_REQUEST).send({
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: error.message,

@@ -12,7 +12,6 @@ import {
     Res,
     UseGuards,
 } from '@nestjs/common';
-import { log } from 'console';
 import { Response } from 'express';
 import { UserRequestDTO } from '../auth/dto/user-request.dto';
 import { JwtAuthGuard } from '../auth/jtw-auth.guard';
@@ -78,7 +77,6 @@ export class ClientController {
                 content: client,
             });
         } catch (error) {
-            log(error);
             return res.status(HttpStatus.BAD_REQUEST).send({
                 statusCode: HttpStatus.BAD_REQUEST,
                 message: error.message,

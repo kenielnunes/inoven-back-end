@@ -13,7 +13,7 @@ export class ReportsService {
         private requestService: RequestService,
     ) {}
 
-    async requestReport(filter: FilterRequestDTO) {
+    async requestReport(usuarioId: number, filter: FilterRequestDTO) {
         const fonts: TFontDictionary = {
             Helvetica: {
                 normal: 'Helvetica',
@@ -23,7 +23,7 @@ export class ReportsService {
             },
         };
 
-        const req = await this.requestService.findAll(filter);
+        const req = await this.requestService.findAll(usuarioId, filter);
 
         const requests = req.content;
 
@@ -41,7 +41,7 @@ export class ReportsService {
             });
             rows.push({ text: request.formaPagamento, style: 'tableContent' });
             rows.push({
-                text: `R$ ${request.valorTotal}`,
+                text: `R$ ${request.valorTotal.toFixed(2)}`,
                 style: 'tableContent',
             });
 

@@ -71,6 +71,7 @@ export class RequestService {
     }
 
     async findAll(
+        usuarioId: number,
         filter?: FilterRequestDTO,
     ): Promise<PaginatedResult<FindRequestDTO>> {
         const paginate: PaginateFunction = paginator({
@@ -119,6 +120,8 @@ export class RequestService {
                         mode: 'insensitive',
                     },
                 },
+                dataEntrega: {},
+                usuarioId: usuarioId,
             },
         };
 
@@ -134,15 +137,10 @@ export class RequestService {
             };
         }
 
-        if (filter?.dataInicio) {
-            args.where.dataPedido = {
-                gte: adjustedStartDate,
-            };
-        }
-
-        if (filter?.dataFim) {
-            args.where.dataPedido = {
-                lte: adjustedEndDate,
+        if (filter.dataInicio || filter.dataFim) {
+            args.where.dataEntrega = {
+                gte: filter.dataInicio ? adjustedStartDate : undefined,
+                lte: filter.dataFim ? adjustedEndDate : undefined,
             };
         }
 
@@ -152,7 +150,7 @@ export class RequestService {
             };
         }
 
-        log(args.where);
+        log(args);
 
         const paginatedResult = await paginate(this.prisma.request, args, {
             page: filter?.page,
@@ -171,6 +169,8 @@ export class RequestService {
                 };
             },
         );
+
+        log(`formattedDTO`, formattedDTO);
 
         return {
             ...paginatedResult,
