@@ -11,7 +11,6 @@ import {
     Req,
     Res,
     UploadedFiles,
-    UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -19,12 +18,10 @@ import { Response } from 'express';
 import { diskStorage } from 'multer';
 import { stringToSlug } from 'src/utils/string-to-slug';
 import { UserRequestDTO } from '../auth/dto/user-request.dto';
-import { JwtAuthGuard } from '../auth/jtw-auth.guard';
 import { GetProductsDTO } from './dto/get-products.dto';
 import { ProductDTO } from './dto/product.dto';
 import { ProductService } from './product.service';
 
-@UseGuards(JwtAuthGuard)
 @Controller('products')
 @UseInterceptors(
     FilesInterceptor('imagensProduto', 5, {
@@ -50,7 +47,7 @@ export class ProductController {
             const created = await this.productService.create({
                 ...createCategoryDto,
                 imagensProduto: imagensProduto,
-                usuarioId: req.user.id,
+                usuarioId: req.user?.id || 1,
             });
 
             return res.status(HttpStatus.CREATED).send({
@@ -73,7 +70,7 @@ export class ProductController {
         @Req() req: UserRequestDTO,
     ) {
         const products = await this.productService.findAll(
-            req.user.id,
+            req.user?.id || 1,
             paginationDto,
         );
 

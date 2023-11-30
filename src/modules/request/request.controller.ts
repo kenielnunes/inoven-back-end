@@ -98,7 +98,18 @@ export class RequestController {
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.requestService.remove(+id);
+    async remove(@Param('id') id: string, @Res() res: Response) {
+        try {
+            await this.requestService.remove(Number(id));
+
+            return res.status(HttpStatus.OK).send({
+                message: 'Pedido removido com sucesso!',
+            });
+        } catch (error) {
+            console.log('error: ', error);
+            return res.status(error.status).send({
+                message: error.message,
+            });
+        }
     }
 }

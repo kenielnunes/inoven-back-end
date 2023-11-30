@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { log } from 'console';
 import moment from 'moment-timezone';
 import { PrismaService } from 'src/database/PrismaService';
 import { EnumValidate } from 'src/utils/enum-validate';
@@ -96,10 +95,6 @@ export class RequestService {
             .subtract(3, 'hours')
             .toISOString();
 
-        log('data inicio ->', adjustedStartDate);
-
-        log('data fim ->', adjustedEndDate);
-
         const args: Prisma.RequestFindManyArgs = {
             include: {
                 cliente: true,
@@ -150,8 +145,6 @@ export class RequestService {
             };
         }
 
-        log(args);
-
         const paginatedResult = await paginate(this.prisma.request, args, {
             page: filter?.page,
             perPage: filter?.perPage,
@@ -165,12 +158,10 @@ export class RequestService {
                 );
                 return {
                     ...request,
-                    valorTotal: totalValue,
+                    valorTotal: Number(totalValue.toFixed(2)),
                 };
             },
         );
-
-        log(`formattedDTO`, formattedDTO);
 
         return {
             ...paginatedResult,
@@ -179,7 +170,7 @@ export class RequestService {
     }
 
     async findOne(id: number) {
-        return this.prisma.request.findFirst({
+        const exists = await this.prisma.request.findFirst({
             where: {
                 id: id,
             },
@@ -194,6 +185,12 @@ export class RequestService {
                 },
             },
         });
+
+        if (!exists) {
+            throw new BadRequestException('Nenhum pedido encontrado');
+        }
+
+        return exists;
     }
 
     async update(id: number, data: UpdateRequestDTO) {
@@ -230,7 +227,13 @@ export class RequestService {
         return updated;
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} request`;
+    async remove(id: number) {
+        await this.findOne(Number(id));
+
+        return await this.prisma.request.delete({
+            where: {
+                id: Number(id),
+            },
+        });
     }
 }

@@ -32,6 +32,7 @@ export class DashboardService {
             status: Status.FINALIZADO,
             dataInicio: startOfYear.toISOString(),
             dataFim: endOfYear.toISOString(),
+            perPage: 9999999999,
         });
 
         const monthsTotals = {};
@@ -40,16 +41,20 @@ export class DashboardService {
             const month = moment(request.dataEntrega)
                 .locale('pt-br')
                 .format('MMMM');
+            const capitalizedMonth =
+                month.charAt(0).toUpperCase() + month.slice(1); // Capitaliza a primeira letra
             const value = request.valorTotal;
 
             // Inicializa o total do mês se ainda não existir
-            if (!monthsTotals[month]) {
-                monthsTotals[month] = 0;
+            if (!monthsTotals[capitalizedMonth]) {
+                monthsTotals[capitalizedMonth] = 0;
             }
 
             // Soma o valor ao total do mês
-            monthsTotals[month] += value;
+            monthsTotals[capitalizedMonth] += value;
         }
+
+        log('monthsTotals', monthsTotals);
 
         // Obtém os meses únicos
         const uniqueMonths = Object.keys(monthsTotals);
@@ -135,7 +140,7 @@ export class DashboardService {
         const variation =
             currentMonthRevenue !== 0
                 ? ((currentMonthRevenue - previousMonthTotalValue) /
-                      currentMonthRevenue) *
+                      previousMonthTotalValue) *
                   100
                 : 0;
 

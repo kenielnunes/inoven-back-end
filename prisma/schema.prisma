@@ -104,7 +104,7 @@ model RequestItem {
   pedidoId      Int     @map("pedido_id")
   produtoId     Int     @map("produto_id")
   valorUnitario Float   @map("valor_unitario")
-  pedido        Request @relation(fields: [pedidoId], references: [id])
+  pedido        Request @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
   produto       Product @relation(fields: [produtoId], references: [id], onDelete: Cascade)
 
   @@map("item_pedido")
