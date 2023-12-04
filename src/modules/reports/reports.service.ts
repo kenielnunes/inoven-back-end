@@ -23,7 +23,10 @@ export class ReportsService {
             },
         };
 
-        const req = await this.requestService.findAll(usuarioId, filter);
+        const req = await this.requestService.findAll(usuarioId, {
+            ...filter,
+            perPage: 999999999999,
+        });
 
         const requests = req.content;
 
